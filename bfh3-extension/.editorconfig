@@ -1,19 +1,15 @@
 # See https://editorconfig.org for more about editor config.
 
-# top-most EditorConfig file
 root = true
 
-# Match all files
 [*]
 charset = utf-8
 end_of_line = lf
-indent_size = 2
-indent_style = space
-insert_final_newline = true
-max_line_length = 80
+indent_size = 4
 trim_trailing_whitespace = true
 
-# Markdown files
-[*.md]
-max_line_length = 0
-trim_trailing_whitespace = false
+[*.html,*.js,*.css]
+indent_size = 4
+indent_style = tab
+max_line_length = 120
+insert_final_newline = true
