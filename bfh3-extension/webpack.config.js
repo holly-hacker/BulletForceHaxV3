@@ -16,9 +16,9 @@ const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 // Merge webpack configuration files
 const config = (_env, _argv) => ({
     entry: {
-        popup: PATHS.src + '/popup.js',
-        contentScript: PATHS.src + '/contentScript.js',
-        background: PATHS.src + '/background.js',
+        popup: PATHS.src + '/popup.ts',
+        contentScript: PATHS.src + '/contentScript.ts',
+        background: PATHS.src + '/background.ts',
     },
     devtool: 'source-map',
     output: {
@@ -29,6 +29,11 @@ const config = (_env, _argv) => ({
     },
     module: {
         rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
             // Help webpack in understanding CSS files imported in .js files
             {
                 test: /\.css$/,
@@ -48,6 +53,9 @@ const config = (_env, _argv) => ({
                 ],
             },
         ],
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
     },
     plugins: [
         // Copy static assets from `public` folder to `build` folder
