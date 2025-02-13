@@ -1,0 +1,69 @@
+'use strict';
+
+const path = require('path');
+
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const PATHS = {
+    src: path.resolve(__dirname, 'src'),
+    build: path.resolve(__dirname, 'build'),
+};
+
+// used in the module rules and in the stats exlude list
+const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
+
+// Merge webpack configuration files
+const config = (_env, _argv) => ({
+    entry: {
+        popup: PATHS.src + '/popup.js',
+        contentScript: PATHS.src + '/contentScript.js',
+        background: PATHS.src + '/background.js',
+    },
+    devtool: 'source-map',
+    output: {
+        // the build folder to output bundles and assets in.
+        path: PATHS.build,
+        // the filename template for entry chunks
+        filename: '[name].js',
+    },
+    module: {
+        rules: [
+            // Help webpack in understanding CSS files imported in .js files
+            {
+                test: /\.css$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader'],
+            },
+            // Check for images imported in .js files and
+            {
+                test: IMAGE_TYPES,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            outputPath: 'images',
+                            name: '[name].[ext]',
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    plugins: [
+        // Copy static assets from `public` folder to `build` folder
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: '**/*',
+                    context: 'public',
+                },
+            ],
+        }),
+        // Extract CSS into separate files
+        new MiniCssExtractPlugin({
+            filename: '[name].css',
+        }),
+    ],
+});
+
+module.exports = config;
