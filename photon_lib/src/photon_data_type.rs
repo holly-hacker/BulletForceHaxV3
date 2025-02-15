@@ -1,3 +1,5 @@
+//! Implements the low-level data types and their (de)serialization
+
 // Disable the clippy lint related to "manual" hash implementations for this file.
 // Because `Indexmap` does not have a hash implementation, we need to specify our own hash function usind the
 // `derivative` crate. Clippy does not like this because the (Partial)Eq and Hash function may become out of sync and

@@ -1,4 +1,4 @@
-//! Implements high-level types PhotonRealtime, PhotonUnityNetworking and PhotonChat.
+//! Implements high-level types from PhotonRealtime, PhotonUnityNetworking and PhotonChat
 
 #[macro_use]
 mod macro_impl;

@@ -1,3 +1,5 @@
+//! Implements the wrapper types around the sent messages
+
 // Disable the clippy lint related to "manual" hash implementations for this file.
 // Because `Indexmap` does not have a hash implementation, we need to specify our own hash function usind the
 // `derivative` crate. Clippy does not like this because the (Partial)Eq and Hash function may become out of sync and
@@ -43,6 +45,7 @@ pub enum PhotonMessage {
 }
 
 impl PhotonMessage {
+    /// Parses a WebSocket message into a Photon message
     pub fn from_websocket_bytes(data: &mut impl Buf) -> Result<PhotonMessage, ReadError> {
         if data.remaining() < 1 {
             return Err(ReadError::NotEnoughBytesLeft);
@@ -62,7 +65,7 @@ impl PhotonMessage {
         }
     }
 
-    /// parse a message that uses magic number 0xF3
+    /// Parses a message that uses magic number 0xF3
     fn from_bytes_f3(data: &mut impl Buf) -> Result<Self, ReadError> {
         if data.remaining() < 2 {
             return Err(ReadError::NotEnoughBytesLeft);
@@ -106,6 +109,7 @@ impl PhotonMessage {
         }
     }
 
+    /// Writes a Photon message to a buffer, so it can be sent as a WebSocket message
     pub fn to_websocket_bytes(&self, buf: &mut impl BufMut) -> Result<(), WriteError> {
         if let Some(type_byte) = self.get_type_byte() {
             debug_assert!(!matches!(self, PhotonMessage::PingResult(_)));
