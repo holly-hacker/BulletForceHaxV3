@@ -19,17 +19,39 @@
         "default_popup": "popup.html"
     },
     "permissions": [
-        "storage"
+        "storage",
+        "unlimitedStorage"
     ],
+    "host_permissions": [
+        "*://*.crazygames.com/*"
+    ],
+    "externally_connectable": {
+        "matches": [
+            "*://games.crazygames.com/en_US/bullet-force-multiplayer/index.html*",
+            "*://bullet-force-multiplayer.game-files.crazygames.com/unity/unity2020/bullet-force-multiplayer.html*"
+        ]
+    },
     "content_scripts": [
         {
             "matches": [
-                "<all_urls>"
+                "*://bullet-force-multiplayer.game-files.crazygames.com/unity/unity2020/bullet-force-multiplayer.html*"
             ],
-            "run_at": "document_idle",
+            "all_frames": true,
+            "run_at": "document_start",
             "js": [
-                "contentScript.js"
+                "contentScripts_gameFrame_documentStart.js"
             ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "webAccessibleResources_gameFrame_loadGameHook.js"
+            ],
+            "matches": [
+                "*://bullet-force-multiplayer.game-files.crazygames.com/*"
+            ],
+            "use_dynamic_url": true
         }
     ]
 }

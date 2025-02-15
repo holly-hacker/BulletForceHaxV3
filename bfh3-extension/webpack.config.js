@@ -18,7 +18,8 @@ const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 const config = {
     entry: {
         popup: PATHS.src + '/popup.ts',
-        contentScript: PATHS.src + '/contentScript.ts',
+        contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
+        webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
         background: PATHS.src + '/background.ts',
     },
     devtool: 'source-map',
