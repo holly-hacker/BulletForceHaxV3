@@ -1,2 +1,5 @@
 # Nix
 .direnv
+
+# Rust
+/target
