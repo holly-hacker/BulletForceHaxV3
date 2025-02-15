@@ -14,7 +14,8 @@ const PATHS = {
 const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 
 // Merge webpack configuration files
-const config = (_env, _argv) => ({
+/** @type {import('webpack').Configuration} */
+const config = {
     entry: {
         popup: PATHS.src + '/popup.ts',
         contentScript: PATHS.src + '/contentScript.ts',
@@ -72,6 +73,6 @@ const config = (_env, _argv) => ({
             filename: '[name].css',
         }),
     ],
-});
+};
 
 module.exports = config;

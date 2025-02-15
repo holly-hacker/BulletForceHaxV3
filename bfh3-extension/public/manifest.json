@@ -1,6 +1,8 @@
 {
+    "$schema": "https://raw.githubusercontent.com/cezaraugusto/chrome-extension-manifest-json-schema/refs/heads/main/manifest/manifest.schema.v3.json",
     "manifest_version": 3,
     "name": "BulletForceHaxV3",
+    "short_name": "BFHv3",
     "version": "0.1.0",
     "description": "BulletForceHaxV3 Browser Extension",
     "icons": {

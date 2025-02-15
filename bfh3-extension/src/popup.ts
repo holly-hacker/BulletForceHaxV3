@@ -29,15 +29,15 @@ import './popup.css';
 	};
 
 	function setupCounter(initialValue = 0) {
-		document.getElementById('counter').innerHTML = initialValue + '';
+		document.getElementById('counter')!.innerHTML = initialValue + '';
 
-		document.getElementById('incrementBtn').addEventListener('click', () => {
+		document.getElementById('incrementBtn')!.addEventListener('click', () => {
 			updateCounter({
 				type: 'INCREMENT',
 			});
 		});
 
-		document.getElementById('decrementBtn').addEventListener('click', () => {
+		document.getElementById('decrementBtn')!.addEventListener('click', () => {
 			updateCounter({
 				type: 'DECREMENT',
 			});
@@ -57,7 +57,7 @@ import './popup.css';
 			}
 
 			counterStorage.set(newCount, () => {
-				document.getElementById('counter').innerHTML = newCount + '';
+				document.getElementById('counter')!.innerHTML = newCount + '';
 
 				// Communicate with content script of
 				// active tab by sending a message
@@ -65,7 +65,7 @@ import './popup.css';
 					const tab = tabs[0];
 
 					chrome.tabs.sendMessage(
-						tab.id,
+						tab.id!,
 						{
 							type: 'COUNT',
 							payload: {
