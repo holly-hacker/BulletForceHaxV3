@@ -22,6 +22,7 @@
               extensions = [ "rust-analyzer" "rust-src" ];
               targets = [ "wasm32-unknown-unknown" ];
             })
+            wasm-pack
           ];
           buildInputs = [];
           packages = [];

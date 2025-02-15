@@ -10,6 +10,16 @@ onDomLoaded(() => {
 	const scriptNode = document.createElement("script");
 	scriptNode.src = loaddGameHookUrl;
 	document.body.append(scriptNode);
+
+	const wasmJsUrl = chrome.runtime.getURL("wasm/index.js");
+	const scriptNode2 = document.createElement("script");
+	scriptNode2.src = wasmJsUrl;
+	document.body.append(scriptNode2);
+
+	const wasmInitUrl = chrome.runtime.getURL("init_wasm_module.js");
+	const scriptNode3 = document.createElement("script");
+	scriptNode3.src = wasmInitUrl;
+	document.body.append(scriptNode3);
 });
 
 var mo = new MutationObserver((mutationList, observer) => {

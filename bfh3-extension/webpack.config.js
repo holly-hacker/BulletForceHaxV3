@@ -4,14 +4,12 @@ const path = require('path');
 
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 
 const PATHS = {
 	src: path.resolve(__dirname, 'src'),
 	build: path.resolve(__dirname, 'build'),
 };
-
-// used in the module rules and in the stats exlude list
-const IMAGE_TYPES = /\.(png|jpe?g|gif|svg)$/i;
 
 // Merge webpack configuration files
 /** @type {import('webpack').Configuration} */
@@ -41,19 +39,6 @@ const config = {
 				test: /\.css$/,
 				use: [MiniCssExtractPlugin.loader, 'css-loader'],
 			},
-			// Check for images imported in .js files and
-			{
-				test: IMAGE_TYPES,
-				use: [
-					{
-						loader: 'file-loader',
-						options: {
-							outputPath: 'images',
-							name: '[name].[ext]',
-						},
-					},
-				],
-			},
 		],
 	},
 	resolve: {
@@ -69,11 +54,33 @@ const config = {
 				},
 			],
 		}),
+
 		// Extract CSS into separate files
 		new MiniCssExtractPlugin({
 			filename: '[name].css',
 		}),
+
+		// Build the rust project
+		new WasmPackPlugin({
+			crateDirectory: path.resolve(__dirname, '../bfh3-browser-implant'),
+			extraArgs: '--target no-modules --no-pack', // --no-typescript is omitted because it is useful for development
+			outDir: '../bfh3-extension/bfh3-browser-implant'
+		}),
+
+		// Copy the built wasm binaries so they can be used by the browser extension.
+		new CopyWebpackPlugin({
+			patterns: [
+				{
+					from: '*.{js,wasm}',
+					to: 'wasm',
+					context: 'bfh3-browser-implant',
+				},
+			],
+		}),
 	],
+	experiments: {
+		asyncWebAssembly: true,
+	}
 };
 
 module.exports = config;
