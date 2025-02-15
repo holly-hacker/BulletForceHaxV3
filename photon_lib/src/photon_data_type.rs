@@ -318,7 +318,7 @@ impl PhotonDataType {
                 buf.put_i16(a.len() as i16);
 
                 for s in a {
-                    let len = s.as_bytes().len();
+                    let len = s.len();
                     if len > i16::MAX as usize {
                         return Err(WriteError::ValueTooLarge("String"));
                     }
@@ -360,7 +360,7 @@ impl PhotonDataType {
             PhotonDataType::OperationResponse(r) => r.to_bytes(buf)?,
             PhotonDataType::OperationRequest(r) => r.to_bytes(buf)?,
             PhotonDataType::String(s) => {
-                let len = s.as_bytes().len();
+                let len = s.len();
                 if len > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("String"));
                 }
@@ -381,7 +381,7 @@ impl PhotonDataType {
                 }
                 buf.put_i16(v.len() as i16);
 
-                let type_byte = match v.get(0) {
+                let type_byte = match v.first() {
                     Some(i) => i.get_type_byte(),
                     None => PhotonDataType::Null.get_type_byte(),
                 };

@@ -2,7 +2,6 @@
 
 use serde::{Deserialize, Serialize};
 
-pub use super::structs_impl::*;
 use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
 #[allow(unused)]
 use crate::highlevel::constants::{event_code, operation_code, pun_event_code};

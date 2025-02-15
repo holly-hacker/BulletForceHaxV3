@@ -45,11 +45,7 @@ impl SendSerializeEvent {
                 Some(PhotonDataType::ObjectArray(x)) => x,
                 _ => return None,
             };
-            let data = SerializedData::from_object_array(found.clone());
-            let data = match data {
-                Some(s) => s,
-                None => return None,
-            };
+            let data = SerializedData::from_object_array(found.clone())?;
             ret.push(data);
         }
 
