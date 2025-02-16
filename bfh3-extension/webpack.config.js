@@ -19,7 +19,7 @@ const config = {
 		webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
 		background: PATHS.src + '/background.ts',
 	},
-	devtool: 'source-map',
+	devtool: 'inline-source-map',
 	output: {
 		// the build folder to output bundles and assets in.
 		path: PATHS.build,
