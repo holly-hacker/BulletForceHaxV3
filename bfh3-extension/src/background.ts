@@ -17,12 +17,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, _info, tab) => {
 
 	if (isCrazyGames || isCrazyGamesWww || isCgTopFrame) {
 		log('Enabling side panel for', tab.url);
+		await chrome.action.enable(tabId);
+		await chrome.action.setBadgeText({ text: "✔️", tabId });
 		await chrome.sidePanel.setOptions({
 			tabId,
 			path: 'sidepanel.html',
 			enabled: true,
 		});
 	} else {
+		await chrome.action.disable(tabId);
+		await chrome.action.setBadgeText({ text: "", tabId });
 		await chrome.sidePanel.setOptions({
 			tabId,
 			enabled: false,

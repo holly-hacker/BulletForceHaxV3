@@ -15,7 +15,8 @@
         "service_worker": "background.js"
     },
     "action": {
-        "default_title": "Open BulletForceHaxV3 panel"
+        "default_title": "Open BulletForceHaxV3 panel",
+        "default_state": "disabled"
     },
     "permissions": [
         "storage",
