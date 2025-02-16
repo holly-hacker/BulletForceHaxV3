@@ -16,6 +16,7 @@ const PATHS = {
 const config = {
 	entry: {
 		popup: PATHS.src + '/popup.ts',
+		sidepanel: PATHS.src + '/sidepanel/index.tsx',
 		contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
 		webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
 		background: PATHS.src + '/background.ts',

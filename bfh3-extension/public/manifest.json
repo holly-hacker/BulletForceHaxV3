@@ -15,12 +15,13 @@
         "service_worker": "background.js"
     },
     "action": {
-        "default_title": "BulletForceHaxV3",
-        "default_popup": "popup.html"
+        "default_title": "Open BulletForceHaxV3 panel"
     },
     "permissions": [
         "storage",
-        "unlimitedStorage"
+        "unlimitedStorage",
+        "tabs",
+        "sidePanel"
     ],
     "host_permissions": [
         "*://*.crazygames.com/*"

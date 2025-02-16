@@ -1,8 +1,34 @@
 'use strict';
 
 import { GetPatchedFileRequest, GetPatchedFileResponse, AnyRequest, GET_PATCHED_FILE } from "./communication";
-import { log } from "./util";
+import { log, logError } from "./util";
 import { fetchOrGetCached } from "./util/fileCache";
+
+log('background service started');
+
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(logError);
+chrome.tabs.onUpdated.addListener(async (tabId, _info, tab) => {
+	if (!tab.url) return;
+	const url = new URL(tab.url);
+
+	const isCrazyGames = url.hostname === 'crazygames.com' && url.pathname === '/game/bullet-force';
+	const isCrazyGamesWww = url.hostname === 'www.crazygames.com' && url.pathname === '/game/bullet-force';
+	const isCgTopFrame = url.hostname === 'games.crazygames.com' && url.pathname.indexOf('bullet-force') !== -1;
+
+	if (isCrazyGames || isCrazyGamesWww || isCgTopFrame) {
+		log('Enabling side panel for', tab.url);
+		await chrome.sidePanel.setOptions({
+			tabId,
+			path: 'sidepanel.html',
+			enabled: true,
+		});
+	} else {
+		await chrome.sidePanel.setOptions({
+			tabId,
+			enabled: false,
+		});
+	}
+});
 
 chrome.runtime.onMessage.addListener(onMessage);
 chrome.runtime.onMessageExternal.addListener(onMessage);
