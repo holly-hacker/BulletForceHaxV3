@@ -3,7 +3,6 @@
 const path = require('path');
 
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 
 const PATHS = {
@@ -15,7 +14,6 @@ const PATHS = {
 /** @type {import('webpack').Configuration} */
 const config = {
 	entry: {
-		popup: PATHS.src + '/popup.ts',
 		sidepanel: PATHS.src + '/sidepanel/index.tsx',
 		contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
 		webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
@@ -35,11 +33,6 @@ const config = {
 				use: 'ts-loader',
 				exclude: /node_modules/,
 			},
-			// Help webpack in understanding CSS files imported in .js files
-			{
-				test: /\.css$/,
-				use: [MiniCssExtractPlugin.loader, 'css-loader'],
-			},
 		],
 	},
 	resolve: {
@@ -54,11 +47,6 @@ const config = {
 					context: 'public',
 				},
 			],
-		}),
-
-		// Extract CSS into separate files
-		new MiniCssExtractPlugin({
-			filename: '[name].css',
 		}),
 
 		// Build the rust project
