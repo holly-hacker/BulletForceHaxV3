@@ -1,6 +1,7 @@
 //! This library aims to help with parsing Photon Unity Networking v1.99 network packets. Other versions may work but
 //! are unsupported.
 
+#[macro_use]
 pub mod highlevel;
 pub mod photon_data_type;
 pub mod photon_message;
@@ -24,11 +25,13 @@ macro_rules! check_remaining {
 
 pub(crate) use check_remaining;
 
-/// An alias for a hashmap containing photon-serialized objects
-pub type PhotonHashmap = IndexMap<PhotonDataType, PhotonDataType>;
+/// A newtype for a hashmap containing photon-serialized objects
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
+pub struct PhotonHashmap(IndexMap<PhotonDataType, PhotonDataType>);
 
-/// An alias for the parameter hashmap used in photon messages.
-pub type ParameterMap = IndexMap<u8, PhotonDataType>;
+/// A newtype for the parameter hashmap used in photon messages.
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
+pub struct ParameterMap(IndexMap<u8, PhotonDataType>);
 
 /// An error that can occur when parsing a message
 #[derive(Debug, Error)]

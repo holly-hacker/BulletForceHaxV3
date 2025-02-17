@@ -415,7 +415,7 @@ mod tests {
             },
         };
 
-        let photon_map = indexmap! {
+        let photon_map = crate::PhotonHashmap(indexmap! {
             PhotonDataType::String("switchingmap".into()) => PhotonDataType::Boolean(false),
             PhotonDataType::Byte(game_property_key::MAX_PLAYERS) => PhotonDataType::Byte(15),
             PhotonDataType::String("meanKD".into()) => PhotonDataType::Float(OrderedFloat(0.72795415)),
@@ -423,7 +423,7 @@ mod tests {
             PhotonDataType::String("seasonID".into()) => PhotonDataType::String("".into()),
             PhotonDataType::Byte(game_property_key::PLAYER_COUNT) => PhotonDataType::Byte(3),
             PhotonDataType::String("eventcode".into()) => PhotonDataType::Integer(0)
-        };
+        });
 
         {
             let deserialized = room_info.clone().into_map();

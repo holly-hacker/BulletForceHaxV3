@@ -195,7 +195,7 @@ impl PingResult {
 #[derivative(Hash)]
 pub struct OperationRequest {
     pub operation_code: u8,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))]
+    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
@@ -224,7 +224,7 @@ pub struct OperationResponse {
     pub operation_code: u8,
     pub return_code: i16,
     pub debug_message: Option<String>,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))]
+    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
@@ -270,7 +270,7 @@ impl OperationResponse {
 #[derivative(Hash)]
 pub struct EventData {
     pub code: u8,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))]
+    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
     // protocol 18 has a `sender` and `custom data` field, but we only support protocol 16 for now
 }
@@ -296,7 +296,7 @@ impl EventData {
 pub struct DisconnectMessage {
     pub code: i16,
     pub debug_message: Option<String>,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))]
+    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
@@ -343,20 +343,20 @@ fn deserialize_parameter_dictionary(bytes: &mut impl Buf) -> Result<ParameterMap
         check_remaining!(bytes, 1);
         parameters.insert(bytes.get_u8(), PhotonDataType::from_bytes(bytes)?);
     }
-    Ok(parameters)
+    Ok(ParameterMap(parameters))
 }
 
 fn serialize_parameter_dictionary(
     buf: &mut impl BufMut,
     map: &ParameterMap,
 ) -> Result<(), WriteError> {
-    if map.len() > i16::MAX as usize {
+    if map.0.len() > i16::MAX as usize {
         return Err(WriteError::ValueTooLarge("Custom Data"));
     }
 
-    buf.put_i16(map.len() as i16);
+    buf.put_i16(map.0.len() as i16);
 
-    for (k, v) in map {
+    for (k, v) in &map.0 {
         buf.put_u8(*k);
         v.to_bytes(buf)?;
     }
@@ -411,7 +411,7 @@ mod tests {
         "f302e50000",
         PhotonMessage::OperationRequest(OperationRequest {
             operation_code: 0xe5,
-            parameters: indexmap!(),
+            parameters: ParameterMap::default(),
         })
     );
 
@@ -422,7 +422,7 @@ mod tests {
             operation_code: 0xe5,
             return_code: 0,
             debug_message: None,
-            parameters: indexmap!(),
+            parameters: ParameterMap::default(),
         })
     );
 
@@ -431,11 +431,11 @@ mod tests {
         "f304e20003e36900000011e5690000006ee46900000016",
         PhotonMessage::EventData(EventData {
             code: 0xe2,
-            parameters: indexmap! {
+            parameters: ParameterMap(indexmap! {
                 0xe3 => PhotonDataType::Integer(0x11),
                 0xe5 => PhotonDataType::Integer(0x6e),
                 0xe4 => PhotonDataType::Integer(0x16),
-            }
+            })
         })
     );
 
@@ -444,9 +444,9 @@ mod tests {
         "f3060100010169000330de",
         PhotonMessage::InternalOperationRequest(OperationRequest {
             operation_code: 1,
-            parameters: indexmap! {
+            parameters: ParameterMap(indexmap! {
                 1 => PhotonDataType::Integer(0x330de),
-            }
+            })
         })
     );
 
@@ -457,10 +457,10 @@ mod tests {
             operation_code: 1,
             return_code: 0,
             debug_message: None,
-            parameters: indexmap! {
+            parameters: ParameterMap(indexmap! {
                 1 => PhotonDataType::Integer(0x2efd),
                 2 => PhotonDataType::Integer(0x38c2510f),
-            }
+            })
         })
     );
 }

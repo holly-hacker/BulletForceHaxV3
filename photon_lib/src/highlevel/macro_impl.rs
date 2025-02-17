@@ -42,7 +42,7 @@ macro_rules! impl_u8_map_conversion {
                         // this may not actually be important, but it allows types converted both ways and be identical
                         $(
                             $(
-                                $field_name_req: match properties.shift_remove(&$map_key_req) {
+                                $field_name_req: match properties.0.shift_remove(&$map_key_req) {
                                     #[allow(unused_parens)]
                                     Some($($map_type_req)?(b)) => b,
                                     #[allow(unreachable_patterns)]
@@ -57,7 +57,7 @@ macro_rules! impl_u8_map_conversion {
                                 },
                             )?
                             $(
-                                $field_name_opt: match properties.shift_remove(&$map_key_opt) {
+                                $field_name_opt: match properties.0.shift_remove(&$map_key_opt) {
                                     #[allow(unused_parens)]
                                     Some($($map_type_opt)?(b)) => Some(b),
                                     #[allow(unreachable_patterns)]
@@ -79,11 +79,11 @@ macro_rules! impl_u8_map_conversion {
 
                     $(
                         $(
-                            map.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
                         )?
                         $(
                             if let Some(b) = self.$field_name_opt.take() {
-                                map.insert($map_key_opt, $($map_type_opt)?(b));
+                                map.0.insert($map_key_opt, $($map_type_opt)?(b));
                             }
                         )?
                     )*
@@ -135,7 +135,7 @@ macro_rules! impl_photon_map_conversion {
                             // NOTE: we need to use `shift_remove` to retain order for custom_properties later
                             // this may not actually be important, but it allows types converted both ways and be identical
                             $(
-                                $field_name_req: match properties.shift_remove(&$map_key_req) {
+                                $field_name_req: match properties.0.shift_remove(&$map_key_req) {
                                     #[allow(unused_parens)]
                                     Some($($map_type_req)?(b)) => b,
                                     #[allow(unreachable_patterns)]
@@ -150,7 +150,7 @@ macro_rules! impl_photon_map_conversion {
                                 },
                             )?
                             $(
-                                $field_name_opt: match properties.shift_remove(&$map_key_opt) {
+                                $field_name_opt: match properties.0.shift_remove(&$map_key_opt) {
                                     #[allow(unused_parens)]
                                     Some($($map_type_opt)?(b)) => Some(b),
                                     #[allow(unreachable_patterns)]
@@ -165,7 +165,7 @@ macro_rules! impl_photon_map_conversion {
                             )?
                         )*
 
-                        custom_properties: properties
+                        custom_properties: properties.0
                             .drain(..)
                             .filter_map(|(k, v)| match k {
                                 PhotonDataType::String(k) => Some((k, v)),
@@ -185,17 +185,17 @@ macro_rules! impl_photon_map_conversion {
 
                     $(
                         $(
-                            map.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
                         )?
                         $(
                             if let Some(b) = self.$field_name_opt.take() {
-                                map.insert($map_key_opt, $($map_type_opt)?(b));
+                                map.0.insert($map_key_opt, $($map_type_opt)?(b));
                             }
                         )?
                     )*
 
                     for (k, v) in self.custom_properties.drain(..) {
-                        map.insert(PhotonDataType::String(k), v);
+                        map.0.insert(PhotonDataType::String(k), v);
                     }
 
                     map

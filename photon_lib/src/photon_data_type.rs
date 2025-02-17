@@ -30,7 +30,8 @@ pub enum PhotonDataType {
     /// Data type 0x44, holds a `Dictionary<TKey, TValue>`. Because this dictionary is generic, we need to store the key and value kind as well.
     Dictionary(
         (u8, u8),
-        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))] PhotonHashmap,
+        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_hashmap"))]
+        PhotonHashmap,
     ),
     /// Data type 0x61, holds a `string[]`.
     StringArray(Vec<String>),
@@ -46,7 +47,8 @@ pub enum PhotonDataType {
     Float(OrderedFloat<f32>),
     /// Data type 0x68, holds a photon Hashtable. This hashtable aims to mimic `System.Collections.Hashtable`.
     Hashtable(
-        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_indexmap"))] PhotonHashmap,
+        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_hashmap"))]
+        PhotonHashmap,
     ),
     /// Data type 0x69, holds an `int`
     Integer(i32),
@@ -96,7 +98,7 @@ impl PhotonDataType {
                 let read_key = key_type == 0 || key_type == 0x2A;
                 let read_val = val_type == 0 || val_type == 0x2A;
 
-                let mut map = indexmap::IndexMap::new();
+                let mut map = PhotonHashmap::default();
                 for _ in 0..len {
                     let key = match read_key {
                         true => Self::from_bytes(bytes)?,
@@ -108,7 +110,7 @@ impl PhotonDataType {
                     };
 
                     if key != PhotonDataType::Null {
-                        map.insert(key, val);
+                        map.0.insert(key, val);
                     }
                 }
 
@@ -150,13 +152,13 @@ impl PhotonDataType {
                 // NOTE: implementation does not allow 0x44 or 0x69 as key or value
                 let len = bytes.get_i16();
 
-                let mut map = indexmap::IndexMap::new();
+                let mut map = PhotonHashmap::default();
                 for _ in 0..len {
                     let key = Self::from_bytes(bytes)?;
                     let val = Self::from_bytes(bytes)?;
 
                     if key != PhotonDataType::Null {
-                        map.insert(key, val);
+                        map.0.insert(key, val);
                     }
                 }
 
@@ -286,16 +288,16 @@ impl PhotonDataType {
                 buf.put_u8(*key_type);
                 buf.put_u8(*val_type);
 
-                if d.len() > i16::MAX as usize {
+                if d.0.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("Custom Data"));
                 }
 
-                buf.put_i16(d.len() as i16);
+                buf.put_i16(d.0.len() as i16);
 
                 let write_key = *key_type == 0 || *key_type == 0x2A;
                 let write_val = *val_type == 0 || *val_type == 0x2A;
 
-                for (k, v) in d {
+                for (k, v) in &d.0 {
                     match write_key {
                         true => k.to_bytes(buf)?,
                         false if k.get_type_byte() != *key_type => {
@@ -333,7 +335,7 @@ impl PhotonDataType {
             PhotonDataType::Double(d) => buf.put_f64(d.0),
             PhotonDataType::EventData(d) => d.to_bytes(buf)?,
             PhotonDataType::Float(f) => buf.put_f32(f.0),
-            PhotonDataType::Hashtable(t) => {
+            PhotonDataType::Hashtable(PhotonHashmap(t)) => {
                 if t.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("String"));
                 }
@@ -555,7 +557,7 @@ impl CustomData {
 
 #[cfg(test)]
 mod tests {
-    use crate::{photon_data_type::*, photon_message::*};
+    use crate::{photon_data_type::*, photon_message::*, ParameterMap};
 
     macro_rules! generate_test {
         ($name: ident, $val: expr, $hex: expr) => {
@@ -654,9 +656,9 @@ mod tests {
     // hashtable can only have 1 item because order is not deterministic
     generate_test!(
         hashtable,
-        PhotonDataType::Hashtable(
+        PhotonDataType::Hashtable(PhotonHashmap(
             indexmap::indexmap! { PhotonDataType::Byte(0xFF) => PhotonDataType::Null, }
-        ),
+        )),
         "68000162FF2A"
     );
 
@@ -664,10 +666,10 @@ mod tests {
         dictionary_byte_string,
         PhotonDataType::Dictionary(
             (0x62, 0x73),
-            indexmap::indexmap! {
+            PhotonHashmap(indexmap::indexmap! {
                 PhotonDataType::Byte(0x01) => PhotonDataType::String("one".into()),
                 PhotonDataType::Byte(0x02) => PhotonDataType::String("two".into()),
-            }
+            })
         ),
         "44627300020100036f6e6502000374776f"
     );
@@ -676,10 +678,10 @@ mod tests {
         dictionary_untyped,
         PhotonDataType::Dictionary(
             (0, 0),
-            indexmap::indexmap! {
+            PhotonHashmap(indexmap::indexmap! {
                 PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
                 PhotonDataType::String("a".into()) => PhotonDataType::Byte(0xFF),
-            }
+            })
         ),
         "440000000262006B12347300016162FF"
     );
@@ -688,10 +690,10 @@ mod tests {
         dictionary_typed_key,
         PhotonDataType::Dictionary(
             (0x62, 0),
-            indexmap::indexmap! {
+            PhotonHashmap(indexmap::indexmap! {
                 PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
                 PhotonDataType::Byte(0x01) => PhotonDataType::Byte(0xFF),
-            }
+            })
         ),
         "4462000002006B12340162FF"
     );
@@ -700,10 +702,10 @@ mod tests {
         event_data,
         PhotonDataType::EventData(EventData {
             code: 0x12,
-            parameters: indexmap::indexmap! {
+            parameters: ParameterMap(indexmap::indexmap! {
                 0x01 => PhotonDataType::Short(0x1234),
                 0xFF => PhotonDataType::Byte(0xFF),
-            }
+            })
         }),
         "65120002016B1234FF62FF"
     );
@@ -714,10 +716,10 @@ mod tests {
             operation_code: 0x12,
             return_code: -1,
             debug_message: Some("test".into()),
-            parameters: indexmap::indexmap! {
+            parameters: ParameterMap(indexmap::indexmap! {
                 0x01 => PhotonDataType::Short(0x1234),
                 0xFF => PhotonDataType::Byte(0xFF),
-            }
+            })
         }),
         "7012FFFF730004746573740002016B1234FF62FF"
     );
@@ -726,10 +728,10 @@ mod tests {
         operation_request,
         PhotonDataType::OperationRequest(OperationRequest {
             operation_code: 0x12,
-            parameters: indexmap::indexmap! {
+            parameters: ParameterMap(indexmap::indexmap! {
                 0x01 => PhotonDataType::Short(0x1234),
                 0xFF => PhotonDataType::Byte(0xFF),
-            }
+            })
         }),
         "71120002016B1234FF62FF"
     );
