@@ -11,15 +11,15 @@ const PATHS = {
 };
 
 // Merge webpack configuration files
-/** @type {import('webpack').Configuration} */
-const config = {
+/** @type {(env, argv: { [key:string]:string }) => import('webpack').Configuration} */
+const config = (_env, argv) => ({
 	entry: {
 		sidepanel: PATHS.src + '/sidepanel/index.tsx',
 		contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
 		webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
 		background: PATHS.src + '/background.ts',
 	},
-	devtool: 'inline-source-map',
+	devtool: argv.mode === 'development' ? 'inline-source-map' : false,
 	output: {
 		// the build folder to output bundles and assets in.
 		path: PATHS.build,
@@ -52,7 +52,7 @@ const config = {
 		// Build the rust project
 		new WasmPackPlugin({
 			crateDirectory: path.resolve(__dirname, '../bfh3-browser-implant'),
-			extraArgs: '--target no-modules --no-pack', // --no-typescript is omitted because it is useful for development
+			extraArgs: argv.mode === 'development' ? '--target no-modules --no-pack' : '--target no-modules --no-pack --no-typescript',
 			outDir: '../bfh3-extension/bfh3-browser-implant'
 		}),
 
@@ -70,6 +70,6 @@ const config = {
 	experiments: {
 		asyncWebAssembly: true,
 	}
-};
+});
 
 module.exports = config;
