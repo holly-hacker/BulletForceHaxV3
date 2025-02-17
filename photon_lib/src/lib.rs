@@ -29,6 +29,10 @@ pub(crate) use check_remaining;
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct PhotonHashmap(IndexMap<PhotonDataType, PhotonDataType>);
 
+/// A newtype for a hashmap containing photon-serialized objects
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
+pub struct PhotonDictionary(IndexMap<PhotonDataType, PhotonDataType>);
+
 /// A newtype for the parameter hashmap used in photon messages.
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct ParameterMap(IndexMap<u8, PhotonDataType>);

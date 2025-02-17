@@ -17,7 +17,7 @@ use crate::{
     check_remaining,
     photon_message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
-    PhotonHashmap, ReadError, WriteError,
+    PhotonDictionary, PhotonHashmap, ReadError, WriteError,
 };
 
 /// A serialized .NET object
@@ -30,8 +30,8 @@ pub enum PhotonDataType {
     /// Data type 0x44, holds a `Dictionary<TKey, TValue>`. Because this dictionary is generic, we need to store the key and value kind as well.
     Dictionary(
         (u8, u8),
-        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_hashmap"))]
-        PhotonHashmap,
+        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_dictionary"))]
+        PhotonDictionary,
     ),
     /// Data type 0x61, holds a `string[]`.
     StringArray(Vec<String>),
@@ -98,7 +98,7 @@ impl PhotonDataType {
                 let read_key = key_type == 0 || key_type == 0x2A;
                 let read_val = val_type == 0 || val_type == 0x2A;
 
-                let mut map = PhotonHashmap::default();
+                let mut map = PhotonDictionary::default();
                 for _ in 0..len {
                     let key = match read_key {
                         true => Self::from_bytes(bytes)?,
@@ -666,7 +666,7 @@ mod tests {
         dictionary_byte_string,
         PhotonDataType::Dictionary(
             (0x62, 0x73),
-            PhotonHashmap(indexmap::indexmap! {
+            PhotonDictionary(indexmap::indexmap! {
                 PhotonDataType::Byte(0x01) => PhotonDataType::String("one".into()),
                 PhotonDataType::Byte(0x02) => PhotonDataType::String("two".into()),
             })
@@ -678,7 +678,7 @@ mod tests {
         dictionary_untyped,
         PhotonDataType::Dictionary(
             (0, 0),
-            PhotonHashmap(indexmap::indexmap! {
+            PhotonDictionary(indexmap::indexmap! {
                 PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
                 PhotonDataType::String("a".into()) => PhotonDataType::Byte(0xFF),
             })
@@ -690,7 +690,7 @@ mod tests {
         dictionary_typed_key,
         PhotonDataType::Dictionary(
             (0x62, 0),
-            PhotonHashmap(indexmap::indexmap! {
+            PhotonDictionary(indexmap::indexmap! {
                 PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
                 PhotonDataType::Byte(0x01) => PhotonDataType::Byte(0xFF),
             })
