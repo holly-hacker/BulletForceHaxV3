@@ -11,8 +11,8 @@ impl ViewId {
 
 impl RpcEvent {
     /// Drains the [Self::data] field
-    pub fn extract_rpc_call(&mut self) -> Result<RpcCall, FromMapError> {
-        RpcCall::from_map(&mut self.data)
+    pub fn into_rpc_call(self) -> Result<RpcCall, FromMapError> {
+        RpcCall::from_map(self.data)
     }
 }
 

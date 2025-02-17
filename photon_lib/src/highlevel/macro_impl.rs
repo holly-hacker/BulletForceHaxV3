@@ -36,7 +36,7 @@ macro_rules! impl_u8_map_conversion {
             }
 
             impl crate::highlevel::PhotonParameterMapConversion for $type_name {
-                fn from_map(properties: &mut crate::ParameterMap) -> Result<Self, crate::highlevel::FromMapError> {
+                fn from_map(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::FromMapError> {
                     Ok($type_name {
                         // NOTE: we need to use `shift_remove` to retain order for custom_properties later
                         // this may not actually be important, but it allows types converted both ways and be identical
@@ -74,7 +74,9 @@ macro_rules! impl_u8_map_conversion {
                     })
                 }
 
-                fn into_map(#[allow(unused_mut)] mut self, map: &mut crate::ParameterMap) {
+                fn into_map(#[allow(unused_mut)] mut self) -> crate::ParameterMap {
+                    let mut map = crate::ParameterMap::default();
+
                     $(
                         $(
                             map.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
@@ -85,6 +87,8 @@ macro_rules! impl_u8_map_conversion {
                             }
                         )?
                     )*
+
+                    map
                 }
             }
         )*
@@ -125,7 +129,7 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl crate::highlevel::PhotonMapConversion for $type_name {
-                fn from_map(properties: &mut crate::PhotonHashmap) -> Result<Self, crate::highlevel::FromMapError> {
+                fn from_map(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::FromMapError> {
                     Ok($type_name {
                         $(
                             // NOTE: we need to use `shift_remove` to retain order for custom_properties later
@@ -176,7 +180,9 @@ macro_rules! impl_photon_map_conversion {
                     })
                 }
 
-                fn into_map(#[allow(unused_mut)] mut self, map: &mut crate::PhotonHashmap) {
+                fn into_map(#[allow(unused_mut)] mut self) -> crate::PhotonHashmap {
+                    let mut map = crate::PhotonHashmap::default();
+
                     $(
                         $(
                             map.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
@@ -191,6 +197,8 @@ macro_rules! impl_photon_map_conversion {
                     for (k, v) in self.custom_properties.drain(..) {
                         map.insert(PhotonDataType::String(k), v);
                     }
+
+                    map
                 }
             }
         )*

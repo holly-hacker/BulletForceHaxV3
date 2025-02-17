@@ -385,7 +385,7 @@ pub struct SerializedData {
 
 #[cfg(test)]
 mod tests {
-    use indexmap::{indexmap, IndexMap};
+    use indexmap::indexmap;
     use ordered_float::OrderedFloat;
 
     use super::RoomInfo;
@@ -415,7 +415,7 @@ mod tests {
             },
         };
 
-        let mut photon_map = indexmap! {
+        let photon_map = indexmap! {
             PhotonDataType::String("switchingmap".into()) => PhotonDataType::Boolean(false),
             PhotonDataType::Byte(game_property_key::MAX_PLAYERS) => PhotonDataType::Byte(15),
             PhotonDataType::String("meanKD".into()) => PhotonDataType::Float(OrderedFloat(0.72795415)),
@@ -426,13 +426,12 @@ mod tests {
         };
 
         {
-            let mut deserialized = IndexMap::new();
-            room_info.clone().into_map(&mut deserialized);
+            let deserialized = room_info.clone().into_map();
             assert_eq!(deserialized, photon_map);
         }
 
         {
-            let serialized = RoomInfo::from_map(&mut photon_map).unwrap();
+            let serialized = RoomInfo::from_map(photon_map).unwrap();
             assert_eq!(serialized, room_info);
         }
     }
