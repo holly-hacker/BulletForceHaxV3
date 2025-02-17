@@ -35,8 +35,10 @@ macro_rules! impl_u8_map_conversion {
                 )*
             }
 
-            impl crate::highlevel::PhotonParameterMapConversion for $type_name {
-                fn from_map(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::FromMapError> {
+            impl std::convert::TryFrom<crate::ParameterMap> for $type_name {
+                type Error = crate::highlevel::FromMapError;
+
+                fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::FromMapError> {
                     Ok($type_name {
                         // NOTE: we need to use `shift_remove` to retain order for custom_properties later
                         // this may not actually be important, but it allows types converted both ways and be identical
@@ -73,16 +75,18 @@ macro_rules! impl_u8_map_conversion {
                         )*
                     })
                 }
+            }
 
-                fn into_map(#[allow(unused_mut)] mut self) -> crate::ParameterMap {
-                    let mut map = crate::ParameterMap::default();
+            impl std::convert::From<$type_name> for crate::ParameterMap {
+                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                    let mut map = Self::default();
 
                     $(
                         $(
-                            map.0.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req));
                         )?
                         $(
-                            if let Some(b) = self.$field_name_opt.take() {
+                            if let Some(b) = value.$field_name_opt.take() {
                                 map.0.insert($map_key_opt, $($map_type_opt)?(b));
                             }
                         )?
@@ -128,8 +132,10 @@ macro_rules! impl_photon_map_conversion {
                 pub custom_properties: indexmap::IndexMap<String, PhotonDataType>,
             }
 
-            impl crate::highlevel::PhotonMapConversion for $type_name {
-                fn from_map(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::FromMapError> {
+            impl std::convert::TryFrom<crate::PhotonHashmap> for $type_name {
+                type Error = crate::highlevel::FromMapError;
+
+                fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::FromMapError> {
                     Ok($type_name {
                         $(
                             // NOTE: we need to use `shift_remove` to retain order for custom_properties later
@@ -179,22 +185,24 @@ macro_rules! impl_photon_map_conversion {
                             .collect::<indexmap::IndexMap<String, PhotonDataType>>(),
                     })
                 }
+            }
 
-                fn into_map(#[allow(unused_mut)] mut self) -> crate::PhotonHashmap {
-                    let mut map = crate::PhotonHashmap::default();
+            impl std::convert::From<$type_name> for crate::PhotonHashmap {
+                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                    let mut map = Self::default();
 
                     $(
                         $(
-                            map.0.insert($map_key_req, $($map_type_req)?(self.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req));
                         )?
                         $(
-                            if let Some(b) = self.$field_name_opt.take() {
+                            if let Some(b) = value.$field_name_opt.take() {
                                 map.0.insert($map_key_opt, $($map_type_opt)?(b));
                             }
                         )?
                     )*
 
-                    for (k, v) in self.custom_properties.drain(..) {
+                    for (k, v) in value.custom_properties.drain(..) {
                         map.0.insert(PhotonDataType::String(k), v);
                     }
 

@@ -390,7 +390,6 @@ mod tests {
 
     use super::RoomInfo;
     use crate::highlevel::constants::game_property_key;
-    use crate::highlevel::PhotonMapConversion;
     use crate::photon_data_type::PhotonDataType;
 
     #[test]
@@ -426,12 +425,12 @@ mod tests {
         });
 
         {
-            let deserialized = room_info.clone().into_map();
+            let deserialized: crate::PhotonHashmap = room_info.clone().into();
             assert_eq!(deserialized, photon_map);
         }
 
         {
-            let serialized = RoomInfo::from_map(photon_map).unwrap();
+            let serialized = RoomInfo::try_from(photon_map).unwrap();
             assert_eq!(serialized, room_info);
         }
     }
