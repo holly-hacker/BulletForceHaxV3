@@ -1,16 +1,8 @@
 //! Implements the low-level data types and their (de)serialization
 
-// Disable the clippy lint related to "manual" hash implementations for this file.
-// Because `Indexmap` does not have a hash implementation, we need to specify our own hash function usind the
-// `derivative` crate. Clippy does not like this because the (Partial)Eq and Hash function may become out of sync and
-// provide conflicting results. I have verified the current implementations but it seems impossible or annoying to
-// disable this lint for just derive attributes, so we disable it for the entire file.
-#![allow(clippy::derived_hash_with_manual_eq)]
-
 use std::cmp::Ordering;
 
 use bytes::{Buf, BufMut};
-use derivative::Derivative;
 use ordered_float::OrderedFloat;
 
 use crate::{
@@ -21,18 +13,13 @@ use crate::{
 };
 
 /// A serialized .NET object
-#[derive(Debug, Default, Clone, PartialEq, Eq, Derivative)]
-#[derivative(Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub enum PhotonDataType {
     #[default]
     /// Data type 0x2A, represents .NET's `null`
     Null,
     /// Data type 0x44, holds a `Dictionary<TKey, TValue>`. Because this dictionary is generic, we need to store the key and value kind as well.
-    Dictionary(
-        (u8, u8),
-        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_dictionary"))]
-        PhotonDictionary,
-    ),
+    Dictionary((u8, u8), PhotonDictionary),
     /// Data type 0x61, holds a `string[]`.
     StringArray(Vec<String>),
     /// Data type 0x62, holds a `byte`
@@ -46,10 +33,7 @@ pub enum PhotonDataType {
     /// Data type 0x66, holds a `float`
     Float(OrderedFloat<f32>),
     /// Data type 0x68, holds a photon Hashtable. This hashtable aims to mimic `System.Collections.Hashtable`.
-    Hashtable(
-        #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_photon_hashmap"))]
-        PhotonHashmap,
-    ),
+    Hashtable(PhotonHashmap),
     /// Data type 0x69, holds an `int`
     Integer(i32),
     /// Data type 0x6B, holds a `short`

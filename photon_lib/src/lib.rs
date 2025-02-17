@@ -29,13 +29,30 @@ pub(crate) use check_remaining;
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct PhotonHashmap(IndexMap<PhotonDataType, PhotonDataType>);
 
+impl std::hash::Hash for PhotonHashmap {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.iter().for_each(|k| k.hash(state));
+    }
+}
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct PhotonDictionary(IndexMap<PhotonDataType, PhotonDataType>);
 
+impl std::hash::Hash for PhotonDictionary {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.iter().for_each(|k| k.hash(state));
+    }
+}
+
 /// A newtype for the parameter hashmap used in photon messages.
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct ParameterMap(IndexMap<u8, PhotonDataType>);
+
+impl std::hash::Hash for ParameterMap {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.iter().for_each(|k| k.hash(state));
+    }
+}
 
 /// An error that can occur when parsing a message
 #[derive(Debug, Error)]

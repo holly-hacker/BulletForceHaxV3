@@ -8,7 +8,6 @@
 #![allow(clippy::derived_hash_with_manual_eq)]
 
 use bytes::{Buf, BufMut};
-use derivative::Derivative;
 use indexmap::IndexMap;
 
 use crate::{
@@ -191,11 +190,9 @@ impl PingResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Derivative)]
-#[derivative(Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OperationRequest {
     pub operation_code: u8,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
@@ -218,13 +215,11 @@ impl OperationRequest {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Derivative)]
-#[derivative(Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OperationResponse {
     pub operation_code: u8,
     pub return_code: i16,
     pub debug_message: Option<String>,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
@@ -266,11 +261,9 @@ impl OperationResponse {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Derivative)]
-#[derivative(Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct EventData {
     pub code: u8,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
     // protocol 18 has a `sender` and `custom data` field, but we only support protocol 16 for now
 }
@@ -291,12 +284,10 @@ impl EventData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Derivative)]
-#[derivative(Hash)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct DisconnectMessage {
     pub code: i16,
     pub debug_message: Option<String>,
-    #[derivative(Hash(hash_with = "crate::utils::derive_utils::hash_parameter_map"))]
     pub parameters: ParameterMap,
 }
 
