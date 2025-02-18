@@ -49,7 +49,7 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_req)?(b)) => b.try_into()?,
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
@@ -70,7 +70,7 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
@@ -137,7 +137,7 @@ macro_rules! impl_photon_map_conversion {
                     $(pub $field_name_req: $field_type_req,)?
                 )*
 
-                pub custom_properties: indexmap::IndexMap<String, PhotonDataType>,
+                pub custom_properties: indexmap::IndexMap<String, PhotonObject>,
             }
 
             impl std::convert::TryFrom<crate::PhotonHashmap> for $type_name {
@@ -155,10 +155,10 @@ macro_rules! impl_photon_map_conversion {
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
                                         let error_message = format!(
-                                            "When converting {} from map, found {k:?} when expecting data type {}",
+                                            "When converting {} from map, found {k:?} when expecting object type {}",
                                             stringify!($type_name), stringify!($($map_type_req)?));
                                         tracing::error!("{}", error_message);
-                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
@@ -174,7 +174,7 @@ macro_rules! impl_photon_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
@@ -189,7 +189,7 @@ macro_rules! impl_photon_map_conversion {
                         custom_properties: properties.0
                             .drain(..)
                             .filter_map(|(k, v)| match k {
-                                PhotonDataType::String(k) => Some((k, v)),
+                                PhotonObject::String(k) => Some((k, v)),
                                 k => {
                                     tracing::warn!(
                                         "When mapping remaining props to custom props for {} from map, found unmapped, non-string key {k:?}",
@@ -197,19 +197,19 @@ macro_rules! impl_photon_map_conversion {
                                     None
                                 }
                             })
-                            .collect::<indexmap::IndexMap<String, PhotonDataType>>(),
+                            .collect::<indexmap::IndexMap<String, PhotonObject>>(),
                     })
                 }
             }
 
-            impl std::convert::TryFrom<crate::PhotonDataType> for $type_name {
+            impl std::convert::TryFrom<crate::PhotonObject> for $type_name {
                 type Error = crate::highlevel::LiftingError;
 
-                fn try_from(value: crate::PhotonDataType) -> Result<Self, crate::highlevel::LiftingError> {
-                    if let crate::PhotonDataType::Hashtable(properties) = value {
+                fn try_from(value: crate::PhotonObject) -> Result<Self, crate::highlevel::LiftingError> {
+                    if let crate::PhotonObject::Hashtable(properties) = value {
                         Ok(properties.try_into()?)
                     } else {
-                        Err(crate::highlevel::WrongPhotonDataTypeError {
+                        Err(crate::highlevel::WrongPhotonObjectError {
                             // NOTE: type name is known, add this?
                             expected_type: stringify!(Hashtable),
                             actual_value: value,
@@ -234,14 +234,14 @@ macro_rules! impl_photon_map_conversion {
                     )*
 
                     for (k, v) in value.custom_properties.drain(..) {
-                        map.0.insert(PhotonDataType::String(k), v);
+                        map.0.insert(PhotonObject::String(k), v);
                     }
 
                     map
                 }
             }
 
-            impl std::convert::From<$type_name> for crate::PhotonDataType {
+            impl std::convert::From<$type_name> for crate::PhotonObject {
                 fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
                     Self::Hashtable(value.into())
                 }

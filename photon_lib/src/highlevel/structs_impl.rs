@@ -1,5 +1,5 @@
 use super::{structs::*, LiftingError};
-use crate::{photon_data_type::PhotonDataType, PhotonHashmap};
+use crate::{photon_object_type::PhotonObject, PhotonHashmap};
 
 const PHOTON_NETWORK_MAX_VIEW_IDS: i32 = 1000;
 
@@ -24,9 +24,9 @@ impl SendSerializeEvent {
     }
 
     pub fn parse_serialized_data(data: &PhotonHashmap) -> Option<Vec<SerializedData>> {
-        _ = data.0.get(&PhotonDataType::Byte(1))?;
+        _ = data.0.get(&PhotonObject::Byte(1))?;
 
-        let header_len = match data.0.contains_key(&PhotonDataType::Byte(1)) {
+        let header_len = match data.0.contains_key(&PhotonObject::Byte(1)) {
             true => 2,
             false => 1,
         };
@@ -40,9 +40,9 @@ impl SendSerializeEvent {
             let index = i + DATA_INITIAL_INDEX;
             let index = (index & 0xFF) as u8; // NOTE: official implementation does wrap here
 
-            let found = data.0.get(&PhotonDataType::Byte(index));
+            let found = data.0.get(&PhotonObject::Byte(index));
             let found = match found {
-                Some(PhotonDataType::ObjectArray(x)) => x,
+                Some(PhotonObject::ObjectArray(x)) => x,
                 _ => return None,
             };
             let data = SerializedData::from_object_array(found.clone())?;
@@ -56,13 +56,13 @@ impl SendSerializeEvent {
 impl SerializedData {
     // TODO: views can have specific synchronisation. User should pass that to this method
     // TODO: better errors
-    pub fn from_object_array(mut data: Vec<PhotonDataType>) -> Option<Self> {
+    pub fn from_object_array(mut data: Vec<PhotonObject>) -> Option<Self> {
         if data.len() < 3 {
             return None;
         }
 
         let view_id = match data[0] {
-            PhotonDataType::Integer(i) => i,
+            PhotonObject::Integer(i) => i,
             _ => return None,
         };
         // index 1 and 2 are related to compression, which is not implemented yet

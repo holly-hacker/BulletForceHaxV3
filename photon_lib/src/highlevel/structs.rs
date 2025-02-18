@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
 #[allow(unused)]
 use crate::highlevel::constants::{event_code, operation_code, pun_event_code};
-use crate::photon_data_type::{CustomData, PhotonDataType};
+use crate::photon_object_type::{CustomData, PhotonObject};
 use crate::PhotonHashmap;
 
 /// Represents a Photon View ID
@@ -22,113 +22,113 @@ impl_u8_map_conversion! {
     #[derive(Debug)]
     RoomInfoList {
         @required
-        [parameter_code::GAME_LIST => PhotonDataType::Hashtable]
+        [parameter_code::GAME_LIST => PhotonObject::Hashtable]
         games: IndexMap<String, RoomInfo>,
     }
 
     SetPropertiesOperationRequest {
         @required
-        [parameter_code::PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::PROPERTIES => PhotonObject::Hashtable]
         properties: PhotonHashmap,
 
         /// Only present when updating an actor, not when updating a room.
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         actor_nr: i32,
 
         @required
-        [parameter_code::BROADCAST => PhotonDataType::Boolean]
+        [parameter_code::BROADCAST => PhotonObject::Boolean]
         broadcast: bool,
 
-        [parameter_code::EXPECTED_VALUES => PhotonDataType::Hashtable]
+        [parameter_code::EXPECTED_VALUES => PhotonObject::Hashtable]
         expected_values: PhotonHashmap,
 
-        [parameter_code::EVENT_FORWARD => PhotonDataType::Boolean]
+        [parameter_code::EVENT_FORWARD => PhotonObject::Boolean]
         event_forward: bool,
     }
 
     /// Request parameter of [operation_code::JOIN_GAME].
     #[derive(Debug)]
     JoinGameRequest {
-        [parameter_code::ROOM_NAME => PhotonDataType::String]
+        [parameter_code::ROOM_NAME => PhotonObject::String]
         room_name: String,
 
-        [parameter_code::PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::PROPERTIES => PhotonObject::Hashtable]
         properties: PhotonHashmap,
 
-        [parameter_code::BROADCAST => PhotonDataType::Boolean]
+        [parameter_code::BROADCAST => PhotonObject::Boolean]
         broadcast: bool,
 
-        [parameter_code::PLAYER_PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::PLAYER_PROPERTIES => PhotonObject::Hashtable]
         player_properties: PhotonHashmap,
 
         /// A serialized instance of [RoomInfo]
-        [parameter_code::GAME_PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::GAME_PROPERTIES => PhotonObject::Hashtable]
         game_properties: PhotonHashmap,
 
-        [parameter_code::CLEANUP_CACHE_ON_LEAVE => PhotonDataType::Boolean]
+        [parameter_code::CLEANUP_CACHE_ON_LEAVE => PhotonObject::Boolean]
         cleanup_cache_on_leave: bool,
 
-        [parameter_code::PUBLISH_USER_ID => PhotonDataType::Boolean]
+        [parameter_code::PUBLISH_USER_ID => PhotonObject::Boolean]
         publis_user_id: bool,
 
-        [parameter_code::ADD => PhotonDataType::StringArray]
+        [parameter_code::ADD => PhotonObject::StringArray]
         add: Vec<String>,
 
-        [parameter_code::SUPPRESS_ROOM_EVENTS => PhotonDataType::Boolean]
+        [parameter_code::SUPPRESS_ROOM_EVENTS => PhotonObject::Boolean]
         suppress_room_events: bool,
 
-        [parameter_code::EMPTY_ROOM_TTL => PhotonDataType::Integer]
+        [parameter_code::EMPTY_ROOM_TTL => PhotonObject::Integer]
         empty_room_ttl: i32,
 
-        [parameter_code::PLAYER_TTL => PhotonDataType::Integer]
+        [parameter_code::PLAYER_TTL => PhotonObject::Integer]
         player_ttl: i32,
 
-        [parameter_code::CHECK_USER_ON_JOIN => PhotonDataType::Boolean]
+        [parameter_code::CHECK_USER_ON_JOIN => PhotonObject::Boolean]
         check_user_on_join: bool,
 
-        [parameter_code::JOIN_MODE => PhotonDataType::Byte]
+        [parameter_code::JOIN_MODE => PhotonObject::Byte]
         join_mode: u8,
 
-        [parameter_code::LOBBY_NAME => PhotonDataType::String]
+        [parameter_code::LOBBY_NAME => PhotonObject::String]
         lobby_name: String,
 
-        [parameter_code::LOBBY_TYPE => PhotonDataType::Byte]
+        [parameter_code::LOBBY_TYPE => PhotonObject::Byte]
         lobby_type: u8,
 
-        [parameter_code::PLUGINS => PhotonDataType::StringArray]
+        [parameter_code::PLUGINS => PhotonObject::StringArray]
         plugins: Vec<String>,
 
-        [parameter_code::ROOM_OPTION_FLAGS => PhotonDataType::Integer]
+        [parameter_code::ROOM_OPTION_FLAGS => PhotonObject::Integer]
         room_option_flags: i32, // could add an impl to map this to an enum or something
     }
 
     /// Response parameter of [operation_code::JOIN_GAME] on success (return code 0).
     #[derive(Debug)]
     JoinGameResponseSuccess {
-        [parameter_code::ROOM_NAME => PhotonDataType::String]
+        [parameter_code::ROOM_NAME => PhotonObject::String]
         room_name: String,
 
         @required
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         actor_nr: i32,
 
-        [parameter_code::ACTOR_LIST => PhotonDataType::IntArray]
+        [parameter_code::ACTOR_LIST => PhotonObject::IntArray]
         actor_list: Vec<i32>,
 
         /// A hashmap over serialized [Player]s. The keys in this hashmap are integer actor ids.
         @required
-        [parameter_code::PLAYER_PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::PLAYER_PROPERTIES => PhotonObject::Hashtable]
         player_properties: PhotonHashmap,
 
         /// A serialized instance of [RoomInfo]
         @required
-        [parameter_code::GAME_PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::GAME_PROPERTIES => PhotonObject::Hashtable]
         game_properties: PhotonHashmap,
 
-        [parameter_code::ADDRESS => PhotonDataType::String]
+        [parameter_code::ADDRESS => PhotonObject::String]
         address: String,
 
-        [parameter_code::ROOM_OPTION_FLAGS => PhotonDataType::Integer]
+        [parameter_code::ROOM_OPTION_FLAGS => PhotonObject::Integer]
         room_option_flags: i32, // could add an impl to map this to an enum or something
     }
 
@@ -136,25 +136,25 @@ impl_u8_map_conversion! {
     #[derive(Debug)]
     RaiseEvent {
         @required
-        [parameter_code::CODE => PhotonDataType::Byte]
+        [parameter_code::CODE => PhotonObject::Byte]
         event_code: u8,
 
         [parameter_code::DATA]
-        data: PhotonDataType,
+        data: PhotonObject,
 
-        [parameter_code::CACHE => PhotonDataType::Byte]
+        [parameter_code::CACHE => PhotonObject::Byte]
         cache: u8,
 
-        [parameter_code::RECEIVER_GROUP => PhotonDataType::Byte]
+        [parameter_code::RECEIVER_GROUP => PhotonObject::Byte]
         receiver_group: u8,
 
-        [parameter_code::GROUP => PhotonDataType::Byte]
+        [parameter_code::GROUP => PhotonObject::Byte]
         interest_group: u8,
 
-        [parameter_code::ACTOR_LIST => PhotonDataType::IntArray]
+        [parameter_code::ACTOR_LIST => PhotonObject::IntArray]
         actor_list: Vec<i32>,
 
-        [parameter_code::EVENT_FORWARD => PhotonDataType::Boolean]
+        [parameter_code::EVENT_FORWARD => PhotonObject::Boolean]
         event_forward: bool,
     }
 
@@ -162,17 +162,17 @@ impl_u8_map_conversion! {
     #[derive(Debug)]
     LeaveEvent {
         /// The id of the player who left
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
-        [parameter_code::ACTOR_LIST => PhotonDataType::Array]
-        actors: Vec<PhotonDataType>,
+        [parameter_code::ACTOR_LIST => PhotonObject::Array]
+        actors: Vec<PhotonObject>,
 
-        [parameter_code::IS_INACTIVE => PhotonDataType::Boolean]
+        [parameter_code::IS_INACTIVE => PhotonObject::Boolean]
         is_inactive: bool,
 
         /// The new master client
-        [parameter_code::MASTER_CLIENT_ID => PhotonDataType::Integer]
+        [parameter_code::MASTER_CLIENT_ID => PhotonObject::Integer]
         master_client_id: i32,
     }
 
@@ -180,57 +180,57 @@ impl_u8_map_conversion! {
     #[derive(Debug)]
     PropertiesChangedEvent {
         /// The id of the player who left
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
         @required
-        [parameter_code::TARGET_ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::TARGET_ACTOR_NR => PhotonObject::Integer]
         target_actor_number: i32,
 
         /// If [Self::target_actor_number] is 0, these are game properties. Otherwise these are actor properties.
         @required
-        [parameter_code::PROPERTIES => PhotonDataType::Hashtable]
+        [parameter_code::PROPERTIES => PhotonObject::Hashtable]
         properties: PhotonHashmap,
     }
 
     /// Parameter for [pun_event_code::DESTROY].
     DestroyEvent {
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
         @required
-        [parameter_code::DATA => PhotonDataType::Hashtable]
+        [parameter_code::DATA => PhotonObject::Hashtable]
         data: PhotonHashmap,
     }
 
     /// Parameter for [pun_event_code::INSTANTIATION].
     InstantiationEvent {
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
         @required
-        [parameter_code::DATA => PhotonDataType::Hashtable]
+        [parameter_code::DATA => PhotonObject::Hashtable]
         data: PhotonHashmap,
     }
 
     /// Parameter for [pun_event_code::SEND_SERIALIZE] and [pun_event_code::SEND_SERIALIZE_RELIABLE].
     SendSerializeEvent {
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
         @required
-        [parameter_code::DATA => PhotonDataType::Hashtable]
+        [parameter_code::DATA => PhotonObject::Hashtable]
         data: PhotonHashmap,
     }
 
     /// Parameter for [pun_event_code::RPC]. Contains a single [RpcCall].
     #[derive(Debug)]
     RpcEvent {
-        [parameter_code::ACTOR_NR => PhotonDataType::Integer]
+        [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
         @required
-        [parameter_code::CUSTOM_EVENT_CONTENT => PhotonDataType::Hashtable]
+        [parameter_code::CUSTOM_EVENT_CONTENT => PhotonObject::Hashtable]
         data: PhotonHashmap,
     }
 }
@@ -241,48 +241,48 @@ impl_photon_map_conversion! {
     #[derive(Debug, Clone, PartialEq, Eq)]
     RoomInfo {
         /// If `true`, this game should be removed from the game list in the lobby. Not used during gameplay.
-        [PhotonDataType::Byte(game_property_key::REMOVED) => PhotonDataType::Boolean]
+        [PhotonObject::Byte(game_property_key::REMOVED) => PhotonObject::Boolean]
         removed: bool,
 
         /// Indicates how many players can be in this room. 0 means no limit.
-        [PhotonDataType::Byte(game_property_key::MAX_PLAYERS) => PhotonDataType::Byte]
+        [PhotonObject::Byte(game_property_key::MAX_PLAYERS) => PhotonObject::Byte]
         max_players: u8,
 
         /// Indicates if the room can be joined.
-        [PhotonDataType::Byte(game_property_key::IS_OPEN) => PhotonDataType::Boolean]
+        [PhotonObject::Byte(game_property_key::IS_OPEN) => PhotonObject::Boolean]
         is_open: bool,
 
         /// Indicates if this room should be shown in the lobby. Invisible rooms can still be joined.
-        [PhotonDataType::Byte(game_property_key::IS_VISIBLE) => PhotonDataType::Boolean]
+        [PhotonObject::Byte(game_property_key::IS_VISIBLE) => PhotonObject::Boolean]
         is_visible: bool,
 
-        [PhotonDataType::Byte(game_property_key::PLAYER_COUNT) => PhotonDataType::Byte]
+        [PhotonObject::Byte(game_property_key::PLAYER_COUNT) => PhotonObject::Byte]
         player_count: u8,
 
-        [PhotonDataType::Byte(game_property_key::CLEANUP_CACHE_ON_LEAVE) => PhotonDataType::Boolean]
+        [PhotonObject::Byte(game_property_key::CLEANUP_CACHE_ON_LEAVE) => PhotonObject::Boolean]
         cleanup_cache_on_leave: bool,
 
         /// The actor id of the master client.
-        [PhotonDataType::Byte(game_property_key::MASTER_CLIENT_ID) => PhotonDataType::Integer]
+        [PhotonObject::Byte(game_property_key::MASTER_CLIENT_ID) => PhotonObject::Integer]
         master_client_id: i32,
 
-        [PhotonDataType::Byte(game_property_key::PROPS_LISTED_IN_LOBBY) => PhotonDataType::StringArray]
+        [PhotonObject::Byte(game_property_key::PROPS_LISTED_IN_LOBBY) => PhotonObject::StringArray]
         props_listed_in_lobby: Vec<String>,
 
         /// Instructs the server to keep player slots open for these players.
-        [PhotonDataType::Byte(game_property_key::EXPECTED_USERS) => PhotonDataType::StringArray]
+        [PhotonObject::Byte(game_property_key::EXPECTED_USERS) => PhotonObject::StringArray]
         expected_users: Vec<String>,
 
         /// How long the room stays alive after the last player left.
         ///
         /// See also [RoomInfo::player_ttl].
-        [PhotonDataType::Byte(game_property_key::EMPTY_ROOM_TTL) => PhotonDataType::Integer]
+        [PhotonObject::Byte(game_property_key::EMPTY_ROOM_TTL) => PhotonObject::Integer]
         empty_room_ttl: i32,
 
         /// How long a player stays "active" after disconnecting. As long as this time has not passed, their slot stays occupied.
         ///
         /// See also [Player::is_inactive].
-        [PhotonDataType::Byte(game_property_key::PLAYER_TTL) => PhotonDataType::Integer]
+        [PhotonObject::Byte(game_property_key::PLAYER_TTL) => PhotonObject::Integer]
         player_ttl: i32,
     }
 
@@ -291,14 +291,14 @@ impl_photon_map_conversion! {
     Player {
         // It's possible that this is always present, but I'm not 100% sure.
         /// The player's nickname.
-        [PhotonDataType::Byte(actor_properties::PLAYER_NAME) => PhotonDataType::String]
+        [PhotonObject::Byte(actor_properties::PLAYER_NAME) => PhotonObject::String]
         nickname: String,
 
         // Surprisingly, not always present.
-        [PhotonDataType::Byte(actor_properties::USER_ID) => PhotonDataType::String]
+        [PhotonObject::Byte(actor_properties::USER_ID) => PhotonObject::String]
         user_id: String,
 
-        [PhotonDataType::Byte(actor_properties::IS_INACTIVE) => PhotonDataType::Boolean]
+        [PhotonObject::Byte(actor_properties::IS_INACTIVE) => PhotonObject::Boolean]
         is_inactive: bool,
     }
 
@@ -306,7 +306,7 @@ impl_photon_map_conversion! {
     #[derive(Debug)]
     DestroyEventData {
         @required
-        [PhotonDataType::Byte(0) => PhotonDataType::Integer]
+        [PhotonObject::Byte(0) => PhotonObject::Integer]
         view_id: i32,
     }
 
@@ -314,65 +314,65 @@ impl_photon_map_conversion! {
     #[derive(Debug)]
     InstantiationEventData {
         @required
-        [PhotonDataType::Byte(0) => PhotonDataType::String]
+        [PhotonObject::Byte(0) => PhotonObject::String]
         prefab_name: String,
 
         /// # Remarks
         /// Of type Vector3
-        [PhotonDataType::Byte(1) => PhotonDataType::Custom]
+        [PhotonObject::Byte(1) => PhotonObject::Custom]
         position: CustomData,
 
         /// # Remarks
         /// Of type Quaternion
-        [PhotonDataType::Byte(2) => PhotonDataType::Custom]
+        [PhotonObject::Byte(2) => PhotonObject::Custom]
         rotation: CustomData,
 
-        [PhotonDataType::Byte(3) => PhotonDataType::Byte]
+        [PhotonObject::Byte(3) => PhotonObject::Byte]
         group: u8,
 
         /// Should be of same length as [Self::incoming_instantiation_data].
-        [PhotonDataType::Byte(4) => PhotonDataType::IntArray]
+        [PhotonObject::Byte(4) => PhotonObject::IntArray]
         views_ids: Vec<i32>,
 
         /// Should be of same length as [Self::views_ids].
-        [PhotonDataType::Byte(5) => PhotonDataType::ObjectArray]
-        incoming_instantiation_data: Vec<PhotonDataType>,
+        [PhotonObject::Byte(5) => PhotonObject::ObjectArray]
+        incoming_instantiation_data: Vec<PhotonObject>,
 
         @required
-        [PhotonDataType::Byte(6) => PhotonDataType::Integer]
+        [PhotonObject::Byte(6) => PhotonObject::Integer]
         server_time: i32,
 
         /// The view id
         @required
-        [PhotonDataType::Byte(7) => PhotonDataType::Integer]
+        [PhotonObject::Byte(7) => PhotonObject::Integer]
         instantiation_id: i32,
 
-        [PhotonDataType::Byte(8) => PhotonDataType::Short]
+        [PhotonObject::Byte(8) => PhotonObject::Short]
         obj_level_prefix: i16,
     }
 
     /// An RPC call. Can be both sent and received by the client.
     RpcCall {
         @required
-        [PhotonDataType::Byte(0) => PhotonDataType::Integer]
+        [PhotonObject::Byte(0) => PhotonObject::Integer]
         net_view_id: i32,
 
-        [PhotonDataType::Byte(1) => PhotonDataType::Short]
+        [PhotonObject::Byte(1) => PhotonObject::Short]
         other_side_prefix: i16,
 
         /// Present when sent from client to server, but not the other way around
-        [PhotonDataType::Byte(2) => PhotonDataType::Integer]
+        [PhotonObject::Byte(2) => PhotonObject::Integer]
         server_timestamp: i32,
 
         /// Mutually exclusive with [RpcCall::rpc_index]
-        [PhotonDataType::Byte(3) => PhotonDataType::String]
+        [PhotonObject::Byte(3) => PhotonObject::String]
         method_name: String,
 
-        [PhotonDataType::Byte(4) => PhotonDataType::ObjectArray]
-        in_method_parameters: Vec<PhotonDataType>,
+        [PhotonObject::Byte(4) => PhotonObject::ObjectArray]
+        in_method_parameters: Vec<PhotonObject>,
 
         /// Mutually exclusive with [RpcCall::method_name]
-        [PhotonDataType::Byte(5) => PhotonDataType::Byte]
+        [PhotonObject::Byte(5) => PhotonObject::Byte]
         rpc_index: u8,
     }
 }
@@ -382,7 +382,7 @@ impl_photon_map_conversion! {
 /// See [SendSerializeEvent].
 pub struct SerializedData {
     pub view_id: i32,
-    pub data_stream: Vec<PhotonDataType>,
+    pub data_stream: Vec<PhotonObject>,
 }
 
 #[cfg(test)]
@@ -392,7 +392,7 @@ mod tests {
 
     use super::RoomInfo;
     use crate::highlevel::constants::game_property_key;
-    use crate::photon_data_type::PhotonDataType;
+    use crate::photon_object_type::PhotonObject;
 
     #[test]
     fn room_info() {
@@ -409,21 +409,21 @@ mod tests {
             empty_room_ttl: None,
             player_ttl: None,
             custom_properties: indexmap! {
-                "switchingmap".into() => PhotonDataType::Boolean(false),
-                "meanKD".into() => PhotonDataType::Float(OrderedFloat(0.72795415)),
-                "seasonID".into() => PhotonDataType::String("".into()),
-                "eventcode".into() => PhotonDataType::Integer(0)
+                "switchingmap".into() => PhotonObject::Boolean(false),
+                "meanKD".into() => PhotonObject::Float(OrderedFloat(0.72795415)),
+                "seasonID".into() => PhotonObject::String("".into()),
+                "eventcode".into() => PhotonObject::Integer(0)
             },
         };
 
         let photon_map = crate::PhotonHashmap(indexmap! {
-            PhotonDataType::String("switchingmap".into()) => PhotonDataType::Boolean(false),
-            PhotonDataType::Byte(game_property_key::MAX_PLAYERS) => PhotonDataType::Byte(15),
-            PhotonDataType::String("meanKD".into()) => PhotonDataType::Float(OrderedFloat(0.72795415)),
-            PhotonDataType::Byte(game_property_key::IS_OPEN) => PhotonDataType::Boolean(true),
-            PhotonDataType::String("seasonID".into()) => PhotonDataType::String("".into()),
-            PhotonDataType::Byte(game_property_key::PLAYER_COUNT) => PhotonDataType::Byte(3),
-            PhotonDataType::String("eventcode".into()) => PhotonDataType::Integer(0)
+            PhotonObject::String("switchingmap".into()) => PhotonObject::Boolean(false),
+            PhotonObject::Byte(game_property_key::MAX_PLAYERS) => PhotonObject::Byte(15),
+            PhotonObject::String("meanKD".into()) => PhotonObject::Float(OrderedFloat(0.72795415)),
+            PhotonObject::Byte(game_property_key::IS_OPEN) => PhotonObject::Boolean(true),
+            PhotonObject::String("seasonID".into()) => PhotonObject::String("".into()),
+            PhotonObject::Byte(game_property_key::PLAYER_COUNT) => PhotonObject::Byte(3),
+            PhotonObject::String("eventcode".into()) => PhotonObject::Integer(0)
         });
 
         {

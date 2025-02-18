@@ -11,7 +11,7 @@ use bytes::{Buf, BufMut};
 use indexmap::IndexMap;
 
 use crate::{
-    check_remaining, photon_data_type::PhotonDataType, ParameterMap, ReadError, WriteError,
+    check_remaining, photon_object_type::PhotonObject, ParameterMap, ReadError, WriteError,
 };
 
 /// Describes a low-level message that comes in or goes out over the wire.
@@ -36,7 +36,7 @@ pub enum PhotonMessage {
     /// Message type 0x07
     InternalOperationResponse(OperationResponse),
     /// Message type 0x08
-    Message(PhotonDataType),
+    Message(PhotonObject),
     /// Message type 0x09, payload data does not seem to be used.
     RawMessage(Vec<u8>),
     /// S->C message with magic number 0xF0, the client will calculate roundtrip time and server time offset.
@@ -100,7 +100,7 @@ impl PhotonMessage {
             7 => Ok(PhotonMessage::InternalOperationResponse(
                 OperationResponse::from_bytes(data)?,
             )),
-            8 => Ok(PhotonMessage::Message(PhotonDataType::from_bytes(data)?)),
+            8 => Ok(PhotonMessage::Message(PhotonObject::from_bytes(data)?)),
             9 => Ok(PhotonMessage::RawMessage(
                 data.copy_to_bytes(data.remaining()).to_vec(),
             )),
@@ -228,9 +228,9 @@ impl OperationResponse {
         check_remaining!(bytes, 3);
         let operation_code = bytes.get_u8();
         let return_code = bytes.get_i16();
-        let debug_message = match PhotonDataType::from_bytes(bytes)? {
-            PhotonDataType::String(s) => Some(s),
-            PhotonDataType::Null => None,
+        let debug_message = match PhotonObject::from_bytes(bytes)? {
+            PhotonObject::String(s) => Some(s),
+            PhotonObject::Null => None,
             _ => {
                 return Err(ReadError::UnexpectedData(
                     "expected string or null in operation response debug message",
@@ -251,10 +251,9 @@ impl OperationResponse {
         buf.put_u8(self.operation_code);
         buf.put_i16(self.return_code);
         if let Some(msg) = &self.debug_message {
-            // yuck, needless clone
-            PhotonDataType::String(msg.clone()).to_bytes(buf)?;
+            PhotonObject::String(msg.clone()).to_bytes(buf)?;
         } else {
-            PhotonDataType::Null.to_bytes(buf)?;
+            PhotonObject::Null.to_bytes(buf)?;
         }
         serialize_parameter_dictionary(buf, &self.parameters)?;
         Ok(())
@@ -295,9 +294,9 @@ impl DisconnectMessage {
     pub fn from_bytes(bytes: &mut impl Buf) -> Result<Self, ReadError> {
         check_remaining!(bytes, 2);
         let code = bytes.get_i16();
-        let debug_message = match PhotonDataType::from_bytes(bytes)? {
-            PhotonDataType::String(s) => Some(s),
-            PhotonDataType::Null => None,
+        let debug_message = match PhotonObject::from_bytes(bytes)? {
+            PhotonObject::String(s) => Some(s),
+            PhotonObject::Null => None,
             _ => {
                 return Err(ReadError::UnexpectedData(
                     "expected string or null in operation response debug message",
@@ -316,10 +315,9 @@ impl DisconnectMessage {
     pub fn to_bytes(&self, buf: &mut impl BufMut) -> Result<(), WriteError> {
         buf.put_i16(self.code);
         if let Some(msg) = &self.debug_message {
-            // yuck, needless clone
-            PhotonDataType::String(msg.clone()).to_bytes(buf)?;
+            PhotonObject::String(msg.clone()).to_bytes(buf)?;
         } else {
-            PhotonDataType::Null.to_bytes(buf)?;
+            PhotonObject::Null.to_bytes(buf)?;
         }
         serialize_parameter_dictionary(buf, &self.parameters)?;
         Ok(())
@@ -332,7 +330,7 @@ fn deserialize_parameter_dictionary(bytes: &mut impl Buf) -> Result<ParameterMap
     let mut parameters = IndexMap::with_capacity(params_count as usize);
     for _ in 0..params_count {
         check_remaining!(bytes, 1);
-        parameters.insert(bytes.get_u8(), PhotonDataType::from_bytes(bytes)?);
+        parameters.insert(bytes.get_u8(), PhotonObject::from_bytes(bytes)?);
     }
     Ok(ParameterMap(parameters))
 }
@@ -360,7 +358,7 @@ mod tests {
     use indexmap::indexmap;
 
     use super::PhotonMessage;
-    use crate::{photon_data_type::PhotonDataType, photon_message::*};
+    use crate::{photon_message::*, photon_object_type::PhotonObject};
 
     macro_rules! test_message {
         ($name:ident, $hex:literal, $val:expr) => {
@@ -423,9 +421,9 @@ mod tests {
         PhotonMessage::EventData(EventData {
             code: 0xe2,
             parameters: ParameterMap(indexmap! {
-                0xe3 => PhotonDataType::Integer(0x11),
-                0xe5 => PhotonDataType::Integer(0x6e),
-                0xe4 => PhotonDataType::Integer(0x16),
+                0xe3 => PhotonObject::Integer(0x11),
+                0xe5 => PhotonObject::Integer(0x6e),
+                0xe4 => PhotonObject::Integer(0x16),
             })
         })
     );
@@ -436,7 +434,7 @@ mod tests {
         PhotonMessage::InternalOperationRequest(OperationRequest {
             operation_code: 1,
             parameters: ParameterMap(indexmap! {
-                1 => PhotonDataType::Integer(0x330de),
+                1 => PhotonObject::Integer(0x330de),
             })
         })
     );
@@ -449,8 +447,8 @@ mod tests {
             return_code: 0,
             debug_message: None,
             parameters: ParameterMap(indexmap! {
-                1 => PhotonDataType::Integer(0x2efd),
-                2 => PhotonDataType::Integer(0x38c2510f),
+                1 => PhotonObject::Integer(0x2efd),
+                2 => PhotonObject::Integer(0x38c2510f),
             })
         })
     );

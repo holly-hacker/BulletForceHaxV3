@@ -11,23 +11,23 @@ use std::convert::Infallible;
 
 use thiserror::Error;
 
-use crate::photon_data_type::PhotonDataType;
+use crate::photon_object_type::PhotonObject;
 
 #[derive(Error, Debug)]
 pub enum LiftingError {
-    #[error("while lifting {struct_name}::{field_name} expected data type {expected_type} but got value {actual_value:?}")]
-    UnexpectedDataTypeInStruct {
+    #[error("while lifting {struct_name}::{field_name} expected object type {expected_type} but got value {actual_value:?}")]
+    UnexpectedObjectTypeInStruct {
         /// The name of the struct that was being created
         struct_name: &'static str,
         /// The name of the field where the error occured
         field_name: &'static str,
-        /// The expected PhotonDataType variant
+        /// The expected PhotonObject variant
         expected_type: &'static str,
         /// The value of the encountered type
-        actual_value: PhotonDataType,
+        actual_value: PhotonObject,
     },
     #[error("{0}")]
-    UnexpectedDataType(#[from] WrongPhotonDataTypeError),
+    UnexpectedObjectType(#[from] WrongPhotonObjectError),
     #[error("missing required field {struct_name}::{field_name}")]
     MissingRequiredField {
         /// The name of the struct that was being created
@@ -44,10 +44,10 @@ impl From<Infallible> for LiftingError {
 }
 
 #[derive(Error, Debug)]
-#[error("expected data type {expected_type} but got value {actual_value:?}")]
-pub struct WrongPhotonDataTypeError {
-    /// The expected PhotonDataType variant
+#[error("expected object type {expected_type} but got value {actual_value:?}")]
+pub struct WrongPhotonObjectError {
+    /// The expected PhotonObject variant
     pub expected_type: &'static str,
     /// The value of the encountered type
-    pub actual_value: PhotonDataType,
+    pub actual_value: PhotonObject,
 }

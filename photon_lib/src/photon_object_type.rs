@@ -1,4 +1,4 @@
-//! Implements the low-level data types and their (de)serialization
+//! Implements the low-level object types and their (de)serialization
 
 use std::cmp::Ordering;
 
@@ -7,7 +7,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
     check_remaining,
-    highlevel::WrongPhotonDataTypeError,
+    highlevel::WrongPhotonObjectError,
     photon_message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     PhotonDictionary, PhotonHashmap, ReadError, WriteError,
@@ -15,67 +15,67 @@ use crate::{
 
 /// A serialized .NET object
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
-pub enum PhotonDataType {
+pub enum PhotonObject {
     #[default]
-    /// Data type 0x2A, represents .NET's `null`
+    /// Object type 0x2A, represents .NET's `null`
     Null,
-    /// Data type 0x44, holds a `Dictionary<TKey, TValue>`. Because this dictionary is generic, we need to store the key and value kind as well.
+    /// Object type 0x44, holds a `Dictionary<TKey, TValue>`. Because this dictionary is generic, we need to store the key and value kind as well.
     Dictionary((u8, u8), PhotonDictionary),
-    /// Data type 0x61, holds a `string[]`.
+    /// Object type 0x61, holds a `string[]`.
     StringArray(Vec<String>),
-    /// Data type 0x62, holds a `byte`
+    /// Object type 0x62, holds a `byte`
     Byte(u8),
-    /// Data type 0x63, holds an `object`. This uses a deserialization function that is provided by the game.
+    /// Object type 0x63, holds an `object`. This uses a deserialization function that is provided by the game.
     Custom(CustomData),
-    /// Data type 0x64, holds a `double`
+    /// Object type 0x64, holds a `double`
     Double(OrderedFloat<f64>),
-    /// Data type 0x65, holds [EventData]
+    /// Object type 0x65, holds [EventData]
     EventData(EventData),
-    /// Data type 0x66, holds a `float`
+    /// Object type 0x66, holds a `float`
     Float(OrderedFloat<f32>),
-    /// Data type 0x68, holds a photon Hashtable. This hashtable aims to mimic `System.Collections.Hashtable`.
+    /// Object type 0x68, holds a photon Hashtable. This hashtable aims to mimic `System.Collections.Hashtable`.
     Hashtable(PhotonHashmap),
-    /// Data type 0x69, holds an `int`
+    /// Object type 0x69, holds an `int`
     Integer(i32),
-    /// Data type 0x6B, holds a `short`
+    /// Object type 0x6B, holds a `short`
     Short(i16),
-    /// Data type 0x6C, holds a `long`
+    /// Object type 0x6C, holds a `long`
     Long(i64),
-    /// Data type 0x6E, holds an `int[]`
+    /// Object type 0x6E, holds an `int[]`
     IntArray(Vec<i32>),
-    /// Data type 0x6F, holds a `bool`
+    /// Object type 0x6F, holds a `bool`
     Boolean(bool),
-    /// Data type 0x70, holds an [OperationResponse]
+    /// Object type 0x70, holds an [OperationResponse]
     OperationResponse(OperationResponse),
-    /// Data type 0x71, holds an [OperationRequest]
+    /// Object type 0x71, holds an [OperationRequest]
     OperationRequest(OperationRequest),
-    /// Data type 0x73, holds a `string`
+    /// Object type 0x73, holds a `string`
     String(String),
-    /// Data type 0x78, holds a `byte[]`
+    /// Object type 0x78, holds a `byte[]`
     ByteArray(Vec<u8>),
-    /// Data type 0x79, holds an `Array`. Elements must be of the same type.
-    Array(Vec<PhotonDataType>),
-    /// Data type 0x7A, holds an `object[]`
-    ObjectArray(Vec<PhotonDataType>),
+    /// Object type 0x79, holds an `Array`. Elements must be of the same type.
+    Array(Vec<PhotonObject>),
+    /// Object type 0x7A, holds an `object[]`
+    ObjectArray(Vec<PhotonObject>),
 }
 
 macro_rules! impl_from {
     ($($variant:ident => $type:ty,)*) => {
         $(
-            impl From<$type> for PhotonDataType {
+            impl From<$type> for PhotonObject {
                 fn from(value: $type) -> Self {
                     Self::$variant(value)
                 }
             }
 
-            impl TryFrom<PhotonDataType> for $type {
-                type Error = WrongPhotonDataTypeError;
+            impl TryFrom<PhotonObject> for $type {
+                type Error = WrongPhotonObjectError;
 
-                fn try_from(value: PhotonDataType) -> Result<Self, Self::Error> {
-                    if let PhotonDataType::$variant(str) = value {
+                fn try_from(value: PhotonObject) -> Result<Self, Self::Error> {
+                    if let PhotonObject::$variant(str) = value {
                         Ok(str)
                     } else {
-                        Err(WrongPhotonDataTypeError {
+                        Err(WrongPhotonObjectError {
                             expected_type: stringify!($variant),
                             actual_value: value
                         })
@@ -109,20 +109,20 @@ impl_from! {
     ByteArray => Vec<u8>,
 }
 
-impl PhotonDataType {
-    pub fn from_bytes(bytes: &mut impl Buf) -> Result<PhotonDataType, ReadError> {
+impl PhotonObject {
+    pub fn from_bytes(bytes: &mut impl Buf) -> Result<PhotonObject, ReadError> {
         check_remaining!(bytes, 1);
 
-        let data_type = bytes.get_u8();
-        Self::from_bytes_with_type(bytes, data_type)
+        let object_type = bytes.get_u8();
+        Self::from_bytes_with_type(bytes, object_type)
     }
 
     pub fn from_bytes_with_type(
         bytes: &mut impl Buf,
-        data_type: u8,
-    ) -> Result<PhotonDataType, ReadError> {
-        match data_type {
-            0 | 0x2A => Ok(PhotonDataType::Null),
+        object_type: u8,
+    ) -> Result<PhotonObject, ReadError> {
+        match object_type {
+            0 | 0x2A => Ok(PhotonObject::Null), // NOTE: 0 = unknown
             0x44 => {
                 check_remaining!(bytes, 4);
                 // NOTE: implementation does not allow 0x44 or 0x69 as key or value
@@ -144,12 +144,12 @@ impl PhotonDataType {
                         false => Self::from_bytes_with_type(bytes, val_type)?,
                     };
 
-                    if key != PhotonDataType::Null {
+                    if key != PhotonObject::Null {
                         map.0.insert(key, val);
                     }
                 }
 
-                Ok(PhotonDataType::Dictionary((key_type, val_type), map))
+                Ok(PhotonObject::Dictionary((key_type, val_type), map))
             }
             0x61 => {
                 check_remaining!(bytes, 2);
@@ -158,7 +158,7 @@ impl PhotonDataType {
                     let mut v = Vec::with_capacity(len as usize);
                     for _ in 0..len {
                         match Self::from_bytes_with_type(bytes, 0x73)? {
-                            PhotonDataType::String(s) => v.push(s),
+                            PhotonObject::String(s) => v.push(s),
                             _ => unreachable!(),
                         }
                     }
@@ -166,21 +166,21 @@ impl PhotonDataType {
                 } else {
                     vec![]
                 };
-                Ok(PhotonDataType::StringArray(v))
+                Ok(PhotonObject::StringArray(v))
             }
             0x62 => {
                 check_remaining!(bytes, 1);
-                Ok(PhotonDataType::Byte(bytes.get_u8()))
+                Ok(PhotonObject::Byte(bytes.get_u8()))
             }
-            0x63 => Ok(PhotonDataType::Custom(CustomData::from_bytes(bytes)?)),
+            0x63 => Ok(PhotonObject::Custom(CustomData::from_bytes(bytes)?)),
             0x64 => {
                 check_remaining!(bytes, 8);
-                Ok(PhotonDataType::Double(bytes.get_f64().into()))
+                Ok(PhotonObject::Double(bytes.get_f64().into()))
             }
-            0x65 => Ok(PhotonDataType::EventData(EventData::from_bytes(bytes)?)),
+            0x65 => Ok(PhotonObject::EventData(EventData::from_bytes(bytes)?)),
             0x66 => {
                 check_remaining!(bytes, 4);
-                Ok(PhotonDataType::Float(bytes.get_f32().into()))
+                Ok(PhotonObject::Float(bytes.get_f32().into()))
             }
             0x68 => {
                 check_remaining!(bytes, 2);
@@ -192,24 +192,24 @@ impl PhotonDataType {
                     let key = Self::from_bytes(bytes)?;
                     let val = Self::from_bytes(bytes)?;
 
-                    if key != PhotonDataType::Null {
+                    if key != PhotonObject::Null {
                         map.0.insert(key, val);
                     }
                 }
 
-                Ok(PhotonDataType::Hashtable(map))
+                Ok(PhotonObject::Hashtable(map))
             }
             0x69 => {
                 check_remaining!(bytes, 4);
-                Ok(PhotonDataType::Integer(bytes.get_i32()))
+                Ok(PhotonObject::Integer(bytes.get_i32()))
             }
             0x6B => {
                 check_remaining!(bytes, 2);
-                Ok(PhotonDataType::Short(bytes.get_i16()))
+                Ok(PhotonObject::Short(bytes.get_i16()))
             }
             0x6C => {
                 check_remaining!(bytes, 8);
-                Ok(PhotonDataType::Long(bytes.get_i64()))
+                Ok(PhotonObject::Long(bytes.get_i64()))
             }
             0x6E => {
                 check_remaining!(bytes, 4);
@@ -224,16 +224,16 @@ impl PhotonDataType {
                 } else {
                     vec![]
                 };
-                Ok(PhotonDataType::IntArray(v))
+                Ok(PhotonObject::IntArray(v))
             }
             0x6F => {
                 check_remaining!(bytes, 1);
-                Ok(PhotonDataType::Boolean(bytes.get_u8() != 0))
+                Ok(PhotonObject::Boolean(bytes.get_u8() != 0))
             }
-            0x70 => Ok(PhotonDataType::OperationResponse(
+            0x70 => Ok(PhotonObject::OperationResponse(
                 OperationResponse::from_bytes(bytes)?,
             )),
-            0x71 => Ok(PhotonDataType::OperationRequest(
+            0x71 => Ok(PhotonObject::OperationRequest(
                 OperationRequest::from_bytes(bytes)?,
             )),
             0x73 => {
@@ -257,7 +257,7 @@ impl PhotonDataType {
                     }
                 };
 
-                Ok(PhotonDataType::String(str))
+                Ok(PhotonObject::String(str))
             }
             0x78 => {
                 check_remaining!(bytes, 4);
@@ -270,18 +270,18 @@ impl PhotonDataType {
                 let mut v = vec![0u8; len as usize];
                 bytes.copy_to_slice(&mut v);
 
-                Ok(PhotonDataType::ByteArray(v))
+                Ok(PhotonObject::ByteArray(v))
             }
             0x79 => {
                 check_remaining!(bytes, 3);
                 let len = bytes.get_i16();
-                let data_type = bytes.get_u8();
+                let object_type = bytes.get_u8();
 
                 let v = if len > 0 {
                     let mut vec = Vec::with_capacity(len as usize);
 
                     for _ in 0..len {
-                        vec.push(Self::from_bytes_with_type(bytes, data_type)?);
+                        vec.push(Self::from_bytes_with_type(bytes, object_type)?);
                     }
 
                     vec
@@ -289,7 +289,7 @@ impl PhotonDataType {
                     vec![]
                 };
 
-                Ok(PhotonDataType::Array(v))
+                Ok(PhotonObject::Array(v))
             }
             0x7A => {
                 check_remaining!(bytes, 2);
@@ -304,9 +304,9 @@ impl PhotonDataType {
                     v.push(Self::from_bytes(bytes)?);
                 }
 
-                Ok(PhotonDataType::ObjectArray(v))
+                Ok(PhotonObject::ObjectArray(v))
             }
-            _ => Err(ReadError::UnknownDataType(data_type)),
+            _ => Err(ReadError::UnknownObjectType(object_type)),
         }
     }
 
@@ -318,8 +318,8 @@ impl PhotonDataType {
 
     pub fn to_bytes_without_type_byte(&self, buf: &mut impl BufMut) -> Result<(), WriteError> {
         match self {
-            PhotonDataType::Null => (),
-            PhotonDataType::Dictionary((key_type, val_type), d) => {
+            PhotonObject::Null => (),
+            PhotonObject::Dictionary((key_type, val_type), d) => {
                 buf.put_u8(*key_type);
                 buf.put_u8(*val_type);
 
@@ -350,7 +350,7 @@ impl PhotonDataType {
                     };
                 }
             }
-            PhotonDataType::StringArray(a) => {
+            PhotonObject::StringArray(a) => {
                 if a.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("Custom Data"));
                 }
@@ -365,12 +365,12 @@ impl PhotonDataType {
                     buf.put_slice(s.as_bytes());
                 }
             }
-            PhotonDataType::Byte(b) => buf.put_u8(*b),
-            PhotonDataType::Custom(data) => data.to_bytes(buf)?,
-            PhotonDataType::Double(d) => buf.put_f64(d.0),
-            PhotonDataType::EventData(d) => d.to_bytes(buf)?,
-            PhotonDataType::Float(f) => buf.put_f32(f.0),
-            PhotonDataType::Hashtable(PhotonHashmap(t)) => {
+            PhotonObject::Byte(b) => buf.put_u8(*b),
+            PhotonObject::Custom(data) => data.to_bytes(buf)?,
+            PhotonObject::Double(d) => buf.put_f64(d.0),
+            PhotonObject::EventData(d) => d.to_bytes(buf)?,
+            PhotonObject::Float(f) => buf.put_f32(f.0),
+            PhotonObject::Hashtable(PhotonHashmap(t)) => {
                 if t.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("String"));
                 }
@@ -382,10 +382,10 @@ impl PhotonDataType {
                     v.to_bytes(buf)?;
                 }
             }
-            PhotonDataType::Integer(i) => buf.put_i32(*i),
-            PhotonDataType::Short(s) => buf.put_i16(*s),
-            PhotonDataType::Long(l) => buf.put_i64(*l),
-            PhotonDataType::IntArray(v) => {
+            PhotonObject::Integer(i) => buf.put_i32(*i),
+            PhotonObject::Short(s) => buf.put_i16(*s),
+            PhotonObject::Long(l) => buf.put_i64(*l),
+            PhotonObject::IntArray(v) => {
                 if v.len() > i32::MAX as usize {
                     return Err(WriteError::ValueTooLarge("String"));
                 }
@@ -395,10 +395,10 @@ impl PhotonDataType {
                     buf.put_i32(i);
                 }
             }
-            PhotonDataType::Boolean(b) => buf.put_u8(if *b { 1 } else { 0 }),
-            PhotonDataType::OperationResponse(r) => r.to_bytes(buf)?,
-            PhotonDataType::OperationRequest(r) => r.to_bytes(buf)?,
-            PhotonDataType::String(s) => {
+            PhotonObject::Boolean(b) => buf.put_u8(if *b { 1 } else { 0 }),
+            PhotonObject::OperationResponse(r) => r.to_bytes(buf)?,
+            PhotonObject::OperationRequest(r) => r.to_bytes(buf)?,
+            PhotonObject::String(s) => {
                 let len = s.len();
                 if len > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("String"));
@@ -406,7 +406,7 @@ impl PhotonDataType {
                 buf.put_i16(len as i16);
                 buf.put_slice(s.as_bytes());
             }
-            PhotonDataType::ByteArray(v) => {
+            PhotonObject::ByteArray(v) => {
                 if v.len() > i32::MAX as usize {
                     return Err(WriteError::ValueTooLarge("ByteArray"));
                 }
@@ -414,7 +414,7 @@ impl PhotonDataType {
 
                 buf.put_slice(v);
             }
-            PhotonDataType::Array(v) => {
+            PhotonObject::Array(v) => {
                 if v.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("Array"));
                 }
@@ -422,7 +422,7 @@ impl PhotonDataType {
 
                 let type_byte = match v.first() {
                     Some(i) => i.get_type_byte(),
-                    None => PhotonDataType::Null.get_type_byte(),
+                    None => PhotonObject::Null.get_type_byte(),
                 };
                 buf.put_u8(type_byte);
 
@@ -433,7 +433,7 @@ impl PhotonDataType {
                     item.to_bytes_without_type_byte(buf)?;
                 }
             }
-            PhotonDataType::ObjectArray(v) => {
+            PhotonObject::ObjectArray(v) => {
                 if v.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("ObjectArray"));
                 }
@@ -450,26 +450,26 @@ impl PhotonDataType {
 
     pub fn get_type_byte(&self) -> u8 {
         match self {
-            PhotonDataType::Null => 0x2A,
-            PhotonDataType::Dictionary(_, _) => 0x44,
-            PhotonDataType::StringArray(_) => 0x61,
-            PhotonDataType::Byte(_) => 0x62,
-            PhotonDataType::Custom(_) => 0x63,
-            PhotonDataType::Double(_) => 0x64,
-            PhotonDataType::EventData(_) => 0x65,
-            PhotonDataType::Float(_) => 0x66,
-            PhotonDataType::Hashtable(_) => 0x68,
-            PhotonDataType::Integer(_) => 0x69,
-            PhotonDataType::Short(_) => 0x6B,
-            PhotonDataType::Long(_) => 0x6C,
-            PhotonDataType::IntArray(_) => 0x6E,
-            PhotonDataType::Boolean(_) => 0x6F,
-            PhotonDataType::OperationResponse(_) => 0x70,
-            PhotonDataType::OperationRequest(_) => 0x71,
-            PhotonDataType::String(_) => 0x73,
-            PhotonDataType::ByteArray(_) => 0x78,
-            PhotonDataType::Array(_) => 0x79,
-            PhotonDataType::ObjectArray(_) => 0x7A,
+            PhotonObject::Null => 0x2A,
+            PhotonObject::Dictionary(_, _) => 0x44,
+            PhotonObject::StringArray(_) => 0x61,
+            PhotonObject::Byte(_) => 0x62,
+            PhotonObject::Custom(_) => 0x63,
+            PhotonObject::Double(_) => 0x64,
+            PhotonObject::EventData(_) => 0x65,
+            PhotonObject::Float(_) => 0x66,
+            PhotonObject::Hashtable(_) => 0x68,
+            PhotonObject::Integer(_) => 0x69,
+            PhotonObject::Short(_) => 0x6B,
+            PhotonObject::Long(_) => 0x6C,
+            PhotonObject::IntArray(_) => 0x6E,
+            PhotonObject::Boolean(_) => 0x6F,
+            PhotonObject::OperationResponse(_) => 0x70,
+            PhotonObject::OperationRequest(_) => 0x71,
+            PhotonObject::String(_) => 0x73,
+            PhotonObject::ByteArray(_) => 0x78,
+            PhotonObject::Array(_) => 0x79,
+            PhotonObject::ObjectArray(_) => 0x7A,
         }
     }
 }
@@ -592,7 +592,7 @@ impl CustomData {
 
 #[cfg(test)]
 mod tests {
-    use crate::{photon_data_type::*, photon_message::*, ParameterMap};
+    use crate::{photon_message::*, photon_object_type::*, ParameterMap};
 
     macro_rules! generate_test {
         ($name: ident, $val: expr, $hex: expr) => {
@@ -602,14 +602,14 @@ mod tests {
                     let mut bytes: &[u8] = &hex::decode($hex).expect("valid hex data in test");
                     let val = $val;
 
-                    let deserialized = super::PhotonDataType::from_bytes(&mut bytes).unwrap();
+                    let deserialized = super::PhotonObject::from_bytes(&mut bytes).unwrap();
 
                     assert_eq!(deserialized, val);
                 }
 
                 #[test]
                 fn [<serialize_ $name>]() {
-                    use super::PhotonDataType;
+                    use super::PhotonObject;
 
                     let bytes = hex::decode($hex).expect("valid hex data in test");
                     let val = $val;
@@ -626,64 +626,64 @@ mod tests {
     #[test]
     fn deserialize_00_to_null() {
         assert_eq!(
-            PhotonDataType::from_bytes(&mut bytes::Bytes::from(&[0x00u8][..])).unwrap(),
-            PhotonDataType::Null
+            PhotonObject::from_bytes(&mut bytes::Bytes::from(&[0x00u8][..])).unwrap(),
+            PhotonObject::Null
         );
     }
 
-    generate_test!(null, PhotonDataType::Null, "2a");
-    generate_test!(bool_true, PhotonDataType::Boolean(true), "6f01");
-    generate_test!(bool_false, PhotonDataType::Boolean(false), "6f00");
-    generate_test!(u8, PhotonDataType::Byte(0x90), "6290");
-    generate_test!(s16, PhotonDataType::Short(-1337), "6BFAC7");
-    generate_test!(s32, PhotonDataType::Integer(-559038737), "69DEADBEEF");
+    generate_test!(null, PhotonObject::Null, "2a");
+    generate_test!(bool_true, PhotonObject::Boolean(true), "6f01");
+    generate_test!(bool_false, PhotonObject::Boolean(false), "6f00");
+    generate_test!(u8, PhotonObject::Byte(0x90), "6290");
+    generate_test!(s16, PhotonObject::Short(-1337), "6BFAC7");
+    generate_test!(s32, PhotonObject::Integer(-559038737), "69DEADBEEF");
     generate_test!(
         s64,
-        PhotonDataType::Long(-3886136854700967234),
+        PhotonObject::Long(-3886136854700967234),
         "6cCA11AB1ECAFEBABE"
     );
-    generate_test!(f32, PhotonDataType::Float(42f32.into()), "6642280000");
+    generate_test!(f32, PhotonObject::Float(42f32.into()), "6642280000");
     generate_test!(
         f64,
-        PhotonDataType::Double(13.37f64.into()),
+        PhotonObject::Double(13.37f64.into()),
         "64402abd70a3d70a3d"
     );
-    generate_test!(string, PhotonDataType::String("abc".into()), "730003616263");
+    generate_test!(string, PhotonObject::String("abc".into()), "730003616263");
     generate_test!(
         string_unicode,
-        PhotonDataType::String("abc»d".into()),
+        PhotonObject::String("abc»d".into()),
         "730006616263c2bb64"
     );
     generate_test!(
         byte_array,
-        PhotonDataType::ByteArray(vec![0xDE, 0xAD, 0xBE, 0xEF]),
+        PhotonObject::ByteArray(vec![0xDE, 0xAD, 0xBE, 0xEF]),
         "7800000004DEADBEEF"
     );
     generate_test!(
         int_array,
-        PhotonDataType::IntArray(vec![-559038737, -889275714]),
+        PhotonObject::IntArray(vec![-559038737, -889275714]),
         "6E00000002DEADBEEFCAFEBABE"
     );
     generate_test!(
         string_array,
-        PhotonDataType::StringArray(vec!["abc".into(), "".into()]),
+        PhotonObject::StringArray(vec!["abc".into(), "".into()]),
         "61000200036162630000"
     );
     generate_test!(
         array,
-        PhotonDataType::Array(vec![
-            PhotonDataType::Boolean(true),
-            PhotonDataType::Boolean(false),
-            PhotonDataType::Boolean(true)
+        PhotonObject::Array(vec![
+            PhotonObject::Boolean(true),
+            PhotonObject::Boolean(false),
+            PhotonObject::Boolean(true)
         ]),
         "7900036F010001"
     );
     generate_test!(
         object_array,
-        PhotonDataType::ObjectArray(vec![
-            PhotonDataType::String("abc".into()),
-            PhotonDataType::Null,
-            PhotonDataType::Short(0x123)
+        PhotonObject::ObjectArray(vec![
+            PhotonObject::String("abc".into()),
+            PhotonObject::Null,
+            PhotonObject::Short(0x123)
         ]),
         "7A00037300036162632A6B0123"
     );
@@ -691,19 +691,19 @@ mod tests {
     // hashtable can only have 1 item because order is not deterministic
     generate_test!(
         hashtable,
-        PhotonDataType::Hashtable(PhotonHashmap(
-            indexmap::indexmap! { PhotonDataType::Byte(0xFF) => PhotonDataType::Null, }
+        PhotonObject::Hashtable(PhotonHashmap(
+            indexmap::indexmap! { PhotonObject::Byte(0xFF) => PhotonObject::Null, }
         )),
         "68000162FF2A"
     );
 
     generate_test!(
         dictionary_byte_string,
-        PhotonDataType::Dictionary(
+        PhotonObject::Dictionary(
             (0x62, 0x73),
             PhotonDictionary(indexmap::indexmap! {
-                PhotonDataType::Byte(0x01) => PhotonDataType::String("one".into()),
-                PhotonDataType::Byte(0x02) => PhotonDataType::String("two".into()),
+                PhotonObject::Byte(0x01) => PhotonObject::String("one".into()),
+                PhotonObject::Byte(0x02) => PhotonObject::String("two".into()),
             })
         ),
         "44627300020100036f6e6502000374776f"
@@ -711,11 +711,11 @@ mod tests {
 
     generate_test!(
         dictionary_untyped,
-        PhotonDataType::Dictionary(
+        PhotonObject::Dictionary(
             (0, 0),
             PhotonDictionary(indexmap::indexmap! {
-                PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
-                PhotonDataType::String("a".into()) => PhotonDataType::Byte(0xFF),
+                PhotonObject::Byte(0x00) => PhotonObject::Short(0x1234),
+                PhotonObject::String("a".into()) => PhotonObject::Byte(0xFF),
             })
         ),
         "440000000262006B12347300016162FF"
@@ -723,11 +723,11 @@ mod tests {
 
     generate_test!(
         dictionary_typed_key,
-        PhotonDataType::Dictionary(
+        PhotonObject::Dictionary(
             (0x62, 0),
             PhotonDictionary(indexmap::indexmap! {
-                PhotonDataType::Byte(0x00) => PhotonDataType::Short(0x1234),
-                PhotonDataType::Byte(0x01) => PhotonDataType::Byte(0xFF),
+                PhotonObject::Byte(0x00) => PhotonObject::Short(0x1234),
+                PhotonObject::Byte(0x01) => PhotonObject::Byte(0xFF),
             })
         ),
         "4462000002006B12340162FF"
@@ -735,11 +735,11 @@ mod tests {
 
     generate_test!(
         event_data,
-        PhotonDataType::EventData(EventData {
+        PhotonObject::EventData(EventData {
             code: 0x12,
             parameters: ParameterMap(indexmap::indexmap! {
-                0x01 => PhotonDataType::Short(0x1234),
-                0xFF => PhotonDataType::Byte(0xFF),
+                0x01 => PhotonObject::Short(0x1234),
+                0xFF => PhotonObject::Byte(0xFF),
             })
         }),
         "65120002016B1234FF62FF"
@@ -747,13 +747,13 @@ mod tests {
 
     generate_test!(
         operation_response,
-        PhotonDataType::OperationResponse(OperationResponse {
+        PhotonObject::OperationResponse(OperationResponse {
             operation_code: 0x12,
             return_code: -1,
             debug_message: Some("test".into()),
             parameters: ParameterMap(indexmap::indexmap! {
-                0x01 => PhotonDataType::Short(0x1234),
-                0xFF => PhotonDataType::Byte(0xFF),
+                0x01 => PhotonObject::Short(0x1234),
+                0xFF => PhotonObject::Byte(0xFF),
             })
         }),
         "7012FFFF730004746573740002016B1234FF62FF"
@@ -761,11 +761,11 @@ mod tests {
 
     generate_test!(
         operation_request,
-        PhotonDataType::OperationRequest(OperationRequest {
+        PhotonObject::OperationRequest(OperationRequest {
             operation_code: 0x12,
             parameters: ParameterMap(indexmap::indexmap! {
-                0x01 => PhotonDataType::Short(0x1234),
-                0xFF => PhotonDataType::Byte(0xFF),
+                0x01 => PhotonObject::Short(0x1234),
+                0xFF => PhotonObject::Byte(0xFF),
             })
         }),
         "71120002016B1234FF62FF"
@@ -774,7 +774,7 @@ mod tests {
     // NOTE: original code had tests to detect vec2, vec3, quaternion, etc. we're not supporting that this time
     generate_test!(
         other_custom,
-        PhotonDataType::Custom(CustomData::Unrecognized(15, vec![0xDE, 0xAD, 0xBE, 0xEF])),
+        PhotonObject::Custom(CustomData::Unrecognized(15, vec![0xDE, 0xAD, 0xBE, 0xEF])),
         "630F0004DEADBEEF"
     );
 }

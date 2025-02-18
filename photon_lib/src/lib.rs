@@ -2,8 +2,8 @@
 
 #[macro_use]
 pub mod highlevel;
-pub mod photon_data_type;
 pub mod photon_message;
+pub mod photon_object_type;
 pub mod primitives;
 
 use std::hash::Hash;
@@ -12,7 +12,7 @@ use highlevel::LiftingError;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
-use photon_data_type::PhotonDataType;
+use photon_object_type::PhotonObject;
 use thiserror::Error;
 
 // TODO: perhaps add info on where the error occured?
@@ -28,7 +28,7 @@ pub(crate) use check_remaining;
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
-pub struct PhotonHashmap(IndexMap<PhotonDataType, PhotonDataType>);
+pub struct PhotonHashmap(IndexMap<PhotonObject, PhotonObject>);
 
 impl std::hash::Hash for PhotonHashmap {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -37,8 +37,8 @@ impl std::hash::Hash for PhotonHashmap {
 }
 
 impl<
-        K: TryFrom<PhotonDataType, Error = impl Into<LiftingError>> + Hash + Eq,
-        V: TryFrom<PhotonDataType, Error = impl Into<LiftingError>>,
+        K: TryFrom<PhotonObject, Error = impl Into<LiftingError>> + Hash + Eq,
+        V: TryFrom<PhotonObject, Error = impl Into<LiftingError>>,
     > TryFrom<PhotonHashmap> for IndexMap<K, V>
 {
     type Error = LiftingError;
@@ -56,7 +56,7 @@ impl<
     }
 }
 
-impl<K: Into<PhotonDataType>, V: Into<PhotonDataType>> From<IndexMap<K, V>> for PhotonHashmap {
+impl<K: Into<PhotonObject>, V: Into<PhotonObject>> From<IndexMap<K, V>> for PhotonHashmap {
     fn from(value: IndexMap<K, V>) -> Self {
         PhotonHashmap(
             value
@@ -69,7 +69,7 @@ impl<K: Into<PhotonDataType>, V: Into<PhotonDataType>> From<IndexMap<K, V>> for 
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
-pub struct PhotonDictionary(IndexMap<PhotonDataType, PhotonDataType>);
+pub struct PhotonDictionary(IndexMap<PhotonObject, PhotonObject>);
 
 impl std::hash::Hash for PhotonDictionary {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -79,7 +79,7 @@ impl std::hash::Hash for PhotonDictionary {
 
 /// A newtype for the parameter hashmap used in photon messages.
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
-pub struct ParameterMap(IndexMap<u8, PhotonDataType>);
+pub struct ParameterMap(IndexMap<u8, PhotonObject>);
 
 impl std::hash::Hash for ParameterMap {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -98,8 +98,8 @@ pub enum ReadError {
     InvalidMagicNumber(u8),
     #[error("message type is unknown: {0:#02X}")]
     UnknownMessageType(u8),
-    #[error("data type is unknown: {0:#02X}")]
-    UnknownDataType(u8),
+    #[error("object type is unknown: {0:#02X}")]
+    UnknownObjectType(u8),
     #[error("the following functionality is not yet implemented: {0}")]
     Unimplemented(&'static str),
     #[error("invalid length for custom data {0}, expected {1} but found {2}")]
