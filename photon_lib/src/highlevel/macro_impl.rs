@@ -36,9 +36,9 @@ macro_rules! impl_u8_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::ParameterMap> for $type_name {
-                type Error = crate::highlevel::FromMapError;
+                type Error = crate::highlevel::LiftingError;
 
-                fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::FromMapError> {
+                fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::LiftingError> {
                     Ok($type_name {
                         // NOTE: we need to use `shift_remove` to retain order for custom_properties later
                         // this may not actually be important, but it allows types converted both ways and be identical
@@ -49,13 +49,19 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_req)?(b)) => b.try_into()?,
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        let error_message = format!(
-                                            "When converting {} from map, found {k:?} when expecting data type {}",
-                                            stringify!($type_name), stringify!($($map_type_req)?));
-                                        tracing::error!("{}", error_message);
-                                        return Err(crate::highlevel::FromMapError(error_message));
+                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_req),
+                                            expected_type: stringify!($($map_type_req)?),
+                                            actual_value: k,
+                                        });
                                     }
-                                    _ => todo!("error handling in from_map for missing req field"), // TODO: error handling here!!
+                                    None => {
+                                        return Err(crate::highlevel::LiftingError::MissingRequiredField {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_req),
+                                        });
+                                    }
                                 },
                             )?
                             $(
@@ -64,10 +70,12 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        tracing::warn!(
-                                            "When converting {} from map, found {k:?} when expecting data type {}",
-                                            stringify!($type_name), stringify!($($map_type_opt)?));
-                                        None
+                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_opt),
+                                            expected_type: stringify!($($map_type_opt)?),
+                                            actual_value: k,
+                                        });
                                     }
                                     _ => None,
                                 },
@@ -116,7 +124,7 @@ macro_rules! impl_photon_map_conversion {
                         $field_name_opt:ident: $field_type_opt:ty
                     )?
                     ,
-                )+
+                )*
             }
         )*
     ) => {
@@ -133,9 +141,9 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::PhotonHashmap> for $type_name {
-                type Error = crate::highlevel::FromMapError;
+                type Error = crate::highlevel::LiftingError;
 
-                fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::FromMapError> {
+                fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::LiftingError> {
                     Ok($type_name {
                         $(
                             // NOTE: we need to use `shift_remove` to retain order for custom_properties later
@@ -150,7 +158,12 @@ macro_rules! impl_photon_map_conversion {
                                             "When converting {} from map, found {k:?} when expecting data type {}",
                                             stringify!($type_name), stringify!($($map_type_req)?));
                                         tracing::error!("{}", error_message);
-                                        return Err(crate::highlevel::FromMapError(error_message));
+                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_req),
+                                            expected_type: stringify!($($map_type_req)?),
+                                            actual_value: k,
+                                        });
                                     }
                                     _ => todo!("error handling in from_map for missing req field"), // TODO: error handling here!!
                                 },
@@ -161,10 +174,12 @@ macro_rules! impl_photon_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        tracing::warn!(
-                                            "When converting {} from map, found {k:?} when expecting data type {}",
-                                            stringify!($type_name), stringify!($($map_type_opt)?));
-                                        None
+                                        return Err(crate::highlevel::LiftingError::UnexpectedDataTypeInStruct {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_opt),
+                                            expected_type: stringify!($($map_type_opt)?),
+                                            actual_value: k,
+                                        });
                                     }
                                     _ => None,
                                 },
@@ -177,7 +192,7 @@ macro_rules! impl_photon_map_conversion {
                                 PhotonDataType::String(k) => Some((k, v)),
                                 k => {
                                     tracing::warn!(
-                                        "When mapping custom props for {} from map, found {k:?} as key when expecting a String",
+                                        "When mapping remaining props to custom props for {} from map, found unmapped, non-string key {k:?}",
                                         stringify!($type_name));
                                     None
                                 }
@@ -188,13 +203,17 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::PhotonDataType> for $type_name {
-                type Error = crate::highlevel::FromMapError;
+                type Error = crate::highlevel::LiftingError;
 
-                fn try_from(value: crate::PhotonDataType) -> Result<Self, crate::highlevel::FromMapError> {
+                fn try_from(value: crate::PhotonDataType) -> Result<Self, crate::highlevel::LiftingError> {
                     if let crate::PhotonDataType::Hashtable(properties) = value {
                         Ok(properties.try_into()?)
                     } else {
-                        todo!("handle errors")
+                        Err(crate::highlevel::WrongPhotonDataTypeError {
+                            // NOTE: type name is known, add this?
+                            expected_type: stringify!(Hashtable),
+                            actual_value: value,
+                        }.into())
                     }
                 }
             }

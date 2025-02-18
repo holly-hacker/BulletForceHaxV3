@@ -7,7 +7,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
     check_remaining,
-    highlevel::FromMapError,
+    highlevel::WrongPhotonDataTypeError,
     photon_message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     PhotonDictionary, PhotonHashmap, ReadError, WriteError,
@@ -69,13 +69,16 @@ macro_rules! impl_from {
             }
 
             impl TryFrom<PhotonDataType> for $type {
-                type Error = FromMapError;
+                type Error = WrongPhotonDataTypeError;
 
                 fn try_from(value: PhotonDataType) -> Result<Self, Self::Error> {
                     if let PhotonDataType::$variant(str) = value {
                         Ok(str)
                     } else {
-                        Err(FromMapError(format!("is not {}", stringify!($variant))))
+                        Err(WrongPhotonDataTypeError {
+                            expected_type: stringify!($variant),
+                            actual_value: value
+                        })
                     }
                 }
             }

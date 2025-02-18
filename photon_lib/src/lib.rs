@@ -9,7 +9,7 @@ pub mod utils;
 
 use std::hash::Hash;
 
-use highlevel::FromMapError;
+use highlevel::LiftingError;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
@@ -38,11 +38,11 @@ impl std::hash::Hash for PhotonHashmap {
 }
 
 impl<
-        K: TryFrom<PhotonDataType, Error = impl Into<FromMapError>> + Hash + Eq,
-        V: TryFrom<PhotonDataType, Error = impl Into<FromMapError>>,
+        K: TryFrom<PhotonDataType, Error = impl Into<LiftingError>> + Hash + Eq,
+        V: TryFrom<PhotonDataType, Error = impl Into<LiftingError>>,
     > TryFrom<PhotonHashmap> for IndexMap<K, V>
 {
-    type Error = FromMapError;
+    type Error = LiftingError;
 
     fn try_from(value: PhotonHashmap) -> Result<Self, Self::Error> {
         let mut ret = Self::new();

@@ -1,4 +1,4 @@
-use super::{structs::*, FromMapError};
+use super::{structs::*, LiftingError};
 use crate::{photon_data_type::PhotonDataType, PhotonHashmap};
 
 const PHOTON_NETWORK_MAX_VIEW_IDS: i32 = 1000;
@@ -11,7 +11,7 @@ impl ViewId {
 
 impl RpcEvent {
     /// Drains the [Self::data] field
-    pub fn into_rpc_call(self) -> Result<RpcCall, FromMapError> {
+    pub fn into_rpc_call(self) -> Result<RpcCall, LiftingError> {
         RpcCall::try_from(self.data)
     }
 }
