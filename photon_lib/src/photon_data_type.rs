@@ -59,24 +59,51 @@ pub enum PhotonDataType {
     ObjectArray(Vec<PhotonDataType>),
 }
 
-// TODO: implement all the From and TryFrom (using a macro?)
+macro_rules! impl_from {
+    ($($variant:ident => $type:ty,)*) => {
+        $(
+            impl From<$type> for PhotonDataType {
+                fn from(value: $type) -> Self {
+                    Self::$variant(value)
+                }
+            }
 
-impl From<String> for PhotonDataType {
-    fn from(value: String) -> Self {
-        Self::String(value)
-    }
+            impl TryFrom<PhotonDataType> for $type {
+                type Error = FromMapError;
+
+                fn try_from(value: PhotonDataType) -> Result<Self, Self::Error> {
+                    if let PhotonDataType::$variant(str) = value {
+                        Ok(str)
+                    } else {
+                        Err(FromMapError(format!("is not {}", stringify!($variant))))
+                    }
+                }
+            }
+        )*
+    };
 }
 
-impl TryFrom<PhotonDataType> for String {
-    type Error = FromMapError;
-
-    fn try_from(value: PhotonDataType) -> Result<Self, Self::Error> {
-        if let PhotonDataType::String(str) = value {
-            Ok(str)
-        } else {
-            Err(FromMapError("is not string".into()))
-        }
-    }
+// TODO: Null, Dictionary, Array, ObjectArray
+// for null, not sure what makes sense. Maybe `()`?
+// for dictionary, maybe try to get rid of the `(u8, u8)`
+// for array/objectarray, probably want more newtypes
+impl_from! {
+    StringArray => Vec<String>,
+    Byte => u8,
+    Custom => CustomData,
+    Double => OrderedFloat<f64>,
+    EventData => EventData,
+    Float => OrderedFloat<f32>,
+    Hashtable => PhotonHashmap,
+    Integer => i32,
+    Short => i16,
+    Long => i64,
+    IntArray => Vec<i32>,
+    Boolean => bool,
+    OperationResponse => OperationResponse,
+    OperationRequest => OperationRequest,
+    String => String,
+    ByteArray => Vec<u8>,
 }
 
 impl PhotonDataType {
