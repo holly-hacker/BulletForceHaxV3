@@ -7,6 +7,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
     check_remaining,
+    highlevel::FromMapError,
     photon_message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     PhotonDictionary, PhotonHashmap, ReadError, WriteError,
@@ -56,6 +57,26 @@ pub enum PhotonDataType {
     Array(Vec<PhotonDataType>),
     /// Data type 0x7A, holds an `object[]`
     ObjectArray(Vec<PhotonDataType>),
+}
+
+// TODO: implement all the From and TryFrom (using a macro?)
+
+impl From<String> for PhotonDataType {
+    fn from(value: String) -> Self {
+        Self::String(value)
+    }
+}
+
+impl TryFrom<PhotonDataType> for String {
+    type Error = FromMapError;
+
+    fn try_from(value: PhotonDataType) -> Result<Self, Self::Error> {
+        if let PhotonDataType::String(str) = value {
+            Ok(str)
+        } else {
+            Err(FromMapError("is not string".into()))
+        }
+    }
 }
 
 impl PhotonDataType {

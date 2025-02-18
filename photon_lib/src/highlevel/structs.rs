@@ -1,5 +1,6 @@
 //! High-level representations of photon messages.
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
@@ -18,10 +19,11 @@ pub struct ViewId(pub i32);
 
 impl_u8_map_conversion! {
     /// Parameter of [event_code::GAME_LIST] and [event_code::GAME_LIST_UPDATE]. Contains a list of [RoomInfo].
+    #[derive(Debug)]
     RoomInfoList {
         @required
         [parameter_code::GAME_LIST => PhotonDataType::Hashtable]
-        games: PhotonHashmap,
+        games: IndexMap<String, RoomInfo>,
     }
 
     SetPropertiesOperationRequest {

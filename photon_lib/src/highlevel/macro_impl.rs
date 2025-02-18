@@ -46,7 +46,7 @@ macro_rules! impl_u8_map_conversion {
                             $(
                                 $field_name_req: match properties.0.shift_remove(&$map_key_req) {
                                     #[allow(unused_parens)]
-                                    Some($($map_type_req)?(b)) => b,
+                                    Some($($map_type_req)?(b)) => b.try_into()?,
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
                                         let error_message = format!(
@@ -61,7 +61,7 @@ macro_rules! impl_u8_map_conversion {
                             $(
                                 $field_name_opt: match properties.0.shift_remove(&$map_key_opt) {
                                     #[allow(unused_parens)]
-                                    Some($($map_type_opt)?(b)) => Some(b),
+                                    Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
                                         tracing::warn!(
@@ -83,11 +83,11 @@ macro_rules! impl_u8_map_conversion {
 
                     $(
                         $(
-                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req.into()));
                         )?
                         $(
                             if let Some(b) = value.$field_name_opt.take() {
-                                map.0.insert($map_key_opt, $($map_type_opt)?(b));
+                                map.0.insert($map_key_opt, $($map_type_opt)?(b.into()));
                             }
                         )?
                     )*
@@ -143,7 +143,7 @@ macro_rules! impl_photon_map_conversion {
                             $(
                                 $field_name_req: match properties.0.shift_remove(&$map_key_req) {
                                     #[allow(unused_parens)]
-                                    Some($($map_type_req)?(b)) => b,
+                                    Some($($map_type_req)?(b)) => b.try_into()?,
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
                                         let error_message = format!(
@@ -158,7 +158,7 @@ macro_rules! impl_photon_map_conversion {
                             $(
                                 $field_name_opt: match properties.0.shift_remove(&$map_key_opt) {
                                     #[allow(unused_parens)]
-                                    Some($($map_type_opt)?(b)) => Some(b),
+                                    Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
                                         tracing::warn!(
@@ -187,17 +187,29 @@ macro_rules! impl_photon_map_conversion {
                 }
             }
 
+            impl std::convert::TryFrom<crate::PhotonDataType> for $type_name {
+                type Error = crate::highlevel::FromMapError;
+
+                fn try_from(value: crate::PhotonDataType) -> Result<Self, crate::highlevel::FromMapError> {
+                    if let crate::PhotonDataType::Hashtable(properties) = value {
+                        Ok(properties.try_into()?)
+                    } else {
+                        todo!("handle errors")
+                    }
+                }
+            }
+
             impl std::convert::From<$type_name> for crate::PhotonHashmap {
                 fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
                     let mut map = Self::default();
 
                     $(
                         $(
-                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req));
+                            map.0.insert($map_key_req, $($map_type_req)?(value.$field_name_req.into()));
                         )?
                         $(
                             if let Some(b) = value.$field_name_opt.take() {
-                                map.0.insert($map_key_opt, $($map_type_opt)?(b));
+                                map.0.insert($map_key_opt, $($map_type_opt)?(b.into()));
                             }
                         )?
                     )*
@@ -207,6 +219,12 @@ macro_rules! impl_photon_map_conversion {
                     }
 
                     map
+                }
+            }
+
+            impl std::convert::From<$type_name> for crate::PhotonDataType {
+                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                    Self::Hashtable(value.into())
                 }
             }
         )*

@@ -1,5 +1,4 @@
-//! This library aims to help with parsing Photon Unity Networking v1.99 network packets. Other versions may work but
-//! are unsupported.
+//! This library aims to help with parsing Photon Unity Networking network packets.
 
 #[macro_use]
 pub mod highlevel;
@@ -8,6 +7,9 @@ pub mod photon_message;
 pub mod primitives;
 pub mod utils;
 
+use std::hash::Hash;
+
+use highlevel::FromMapError;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
@@ -34,6 +36,38 @@ impl std::hash::Hash for PhotonHashmap {
         self.0.iter().for_each(|k| k.hash(state));
     }
 }
+
+impl<
+        K: TryFrom<PhotonDataType, Error = impl Into<FromMapError>> + Hash + Eq,
+        V: TryFrom<PhotonDataType, Error = impl Into<FromMapError>>,
+    > TryFrom<PhotonHashmap> for IndexMap<K, V>
+{
+    type Error = FromMapError;
+
+    fn try_from(value: PhotonHashmap) -> Result<Self, Self::Error> {
+        let mut ret = Self::new();
+
+        for (k, v) in value.0.into_iter() {
+            let k = K::try_from(k).map_err(|e| e.into())?;
+            let v = V::try_from(v).map_err(|e| e.into())?;
+            ret.insert(k, v);
+        }
+
+        Ok(ret)
+    }
+}
+
+impl<K: Into<PhotonDataType>, V: Into<PhotonDataType>> From<IndexMap<K, V>> for PhotonHashmap {
+    fn from(value: IndexMap<K, V>) -> Self {
+        PhotonHashmap(
+            value
+                .into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect(),
+        )
+    }
+}
+
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct PhotonDictionary(IndexMap<PhotonDataType, PhotonDataType>);
