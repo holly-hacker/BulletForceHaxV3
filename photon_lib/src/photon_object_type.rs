@@ -77,7 +77,7 @@ macro_rules! impl_from {
                     } else {
                         Err(WrongPhotonObjectError {
                             expected_type: stringify!($variant),
-                            actual_value: value
+                            actual_value: Box::new(value),
                         })
                     }
                 }

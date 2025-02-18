@@ -24,7 +24,7 @@ pub enum LiftingError {
         /// The expected PhotonObject variant
         expected_type: &'static str,
         /// The value of the encountered type
-        actual_value: PhotonObject,
+        actual_value: Box<PhotonObject>,
     },
     #[error("{0}")]
     UnexpectedObjectType(#[from] WrongPhotonObjectError),
@@ -49,5 +49,5 @@ pub struct WrongPhotonObjectError {
     /// The expected PhotonObject variant
     pub expected_type: &'static str,
     /// The value of the encountered type
-    pub actual_value: PhotonObject,
+    pub actual_value: Box<PhotonObject>,
 }

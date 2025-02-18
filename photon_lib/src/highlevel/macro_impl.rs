@@ -53,7 +53,7 @@ macro_rules! impl_u8_map_conversion {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
-                                            actual_value: k,
+                                            actual_value: Box::new(k),
                                         });
                                     }
                                     None => {
@@ -74,7 +74,7 @@ macro_rules! impl_u8_map_conversion {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
-                                            actual_value: k,
+                                            actual_value: Box::new(k),
                                         });
                                     }
                                     _ => None,
@@ -162,7 +162,7 @@ macro_rules! impl_photon_map_conversion {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
-                                            actual_value: k,
+                                            actual_value: Box::new(k),
                                         });
                                     }
                                     _ => todo!("error handling in from_map for missing req field"), // TODO: error handling here!!
@@ -178,7 +178,7 @@ macro_rules! impl_photon_map_conversion {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
-                                            actual_value: k,
+                                            actual_value: Box::new(k),
                                         });
                                     }
                                     _ => None,
@@ -212,7 +212,7 @@ macro_rules! impl_photon_map_conversion {
                         Err(crate::highlevel::WrongPhotonObjectError {
                             // NOTE: type name is known, add this?
                             expected_type: stringify!(Hashtable),
-                            actual_value: value,
+                            actual_value: Box::new(value),
                         }.into())
                     }
                 }
