@@ -5,7 +5,6 @@ pub mod highlevel;
 pub mod photon_data_type;
 pub mod photon_message;
 pub mod primitives;
-pub mod utils;
 
 use std::hash::Hash;
 
