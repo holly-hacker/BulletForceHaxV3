@@ -2,7 +2,7 @@
 //!
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
-#[allow(unused)]
+#[cfg(doc)]
 use crate::photon::message::EventData;
 
 pub const OWNERSHIP_UPDATE: u8 = 212;

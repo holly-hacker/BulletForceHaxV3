@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
-#[allow(unused)]
+#[cfg(doc)]
 use crate::highlevel::constants::{event_code, operation_code, pun_event_code};
 use crate::photon::object::{CustomData, PhotonObject};
 use crate::PhotonHashmap;

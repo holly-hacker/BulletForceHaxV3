@@ -2,7 +2,7 @@
 //!
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
-#[allow(unused)]
+#[cfg(doc)]
 use crate::highlevel::{constants::*, structs::RoomInfo};
 
 /// (255) Max number of players that "fit" into this room. 0 is for "unlimited".

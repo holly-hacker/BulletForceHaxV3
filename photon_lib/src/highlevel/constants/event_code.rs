@@ -2,7 +2,7 @@
 //!
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
-#[allow(unused)]
+#[cfg(doc)]
 use crate::{
     highlevel::{constants::*, structs::RoomInfo},
     photon::message::EventData,
