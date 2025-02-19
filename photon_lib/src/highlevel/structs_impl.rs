@@ -1,5 +1,5 @@
 use super::{structs::*, LiftingError};
-use crate::{photon_object_type::PhotonObject, PhotonHashmap};
+use crate::{photon::object::PhotonObject, PhotonHashmap};
 
 const PHOTON_NETWORK_MAX_VIEW_IDS: i32 = 1000;
 

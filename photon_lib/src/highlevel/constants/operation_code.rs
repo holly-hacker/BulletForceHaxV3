@@ -3,7 +3,7 @@
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
 #[allow(unused)]
-use crate::photon_message::{OperationRequest, OperationResponse};
+use crate::photon::message::{OperationRequest, OperationResponse};
 
 /// (255) Code for OpJoin, to get into a room.
 #[deprecated]

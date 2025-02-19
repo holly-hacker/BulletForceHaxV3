@@ -3,7 +3,7 @@
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
 #[allow(unused)]
-use crate::photon_message::EventData;
+use crate::photon::message::EventData;
 
 pub const OWNERSHIP_UPDATE: u8 = 212;
 pub const VACANT_VIEW_IDS: u8 = 211;

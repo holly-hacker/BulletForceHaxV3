@@ -1,18 +1,11 @@
-//! Implements the wrapper types around the sent messages
-
-// Disable the clippy lint related to "manual" hash implementations for this file.
-// Because `Indexmap` does not have a hash implementation, we need to specify our own hash function usind the
-// `derivative` crate. Clippy does not like this because the (Partial)Eq and Hash function may become out of sync and
-// provide conflicting results. I have verified the current implementations but it seems impossible or annoying to
-// disable this lint for just derive attributes, so we disable it for the entire file.
-#![allow(clippy::derived_hash_with_manual_eq)]
+//! Contains the types for photon messages.
 
 use bytes::{Buf, BufMut};
 use indexmap::IndexMap;
 
-use crate::{
-    check_remaining, photon_object_type::PhotonObject, ParameterMap, ReadError, WriteError,
-};
+use crate::{check_remaining, ParameterMap, ReadError, WriteError};
+
+use super::object::PhotonObject;
 
 /// Describes a low-level message that comes in or goes out over the wire.
 ///
@@ -357,8 +350,7 @@ fn serialize_parameter_dictionary(
 mod tests {
     use indexmap::indexmap;
 
-    use super::PhotonMessage;
-    use crate::{photon_message::*, photon_object_type::PhotonObject};
+    use super::*;
 
     macro_rules! test_message {
         ($name:ident, $hex:literal, $val:expr) => {

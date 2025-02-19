@@ -1,4 +1,5 @@
-//! Implements high-level types from PhotonRealtime, PhotonUnityNetworking and PhotonChat
+//! Implements high-level types from `PhotonRealtime`, `PhotonUnityNetworking` (PUN) and `PhotonChat`, which are the
+//! default implementation of the PUN protocol.
 
 #[macro_use]
 mod macro_impl;
@@ -11,7 +12,7 @@ use std::convert::Infallible;
 
 use thiserror::Error;
 
-use crate::photon_object_type::PhotonObject;
+use crate::photon::object::PhotonObject;
 
 #[derive(Error, Debug)]
 pub enum LiftingError {

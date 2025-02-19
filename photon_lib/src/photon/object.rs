@@ -8,12 +8,14 @@ use ordered_float::OrderedFloat;
 use crate::{
     check_remaining,
     highlevel::WrongPhotonObjectError,
-    photon_message::{EventData, OperationRequest, OperationResponse},
+    photon::message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     PhotonDictionary, PhotonHashmap, ReadError, WriteError,
 };
 
-/// A serialized .NET object
+/// A serialized .NET object when using the GpBinaryV6 protocol.
+///
+/// See also: `ExitGames.Client.Photon.Protocol16.GpType` in Photon3Unity3D.dll.
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub enum PhotonObject {
     #[default]
@@ -592,7 +594,8 @@ impl CustomData {
 
 #[cfg(test)]
 mod tests {
-    use crate::{photon_message::*, photon_object_type::*, ParameterMap};
+    use super::*;
+    use crate::ParameterMap;
 
     macro_rules! generate_test {
         ($name: ident, $val: expr, $hex: expr) => {

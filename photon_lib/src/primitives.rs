@@ -1,4 +1,4 @@
-//! Implements primitive types that are not in the Rust standard library
+//! Implements primitive types used by Photon that are not in the Rust standard library
 
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};

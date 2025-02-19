@@ -1,4 +1,4 @@
-use photon_lib::photon_message::PhotonMessage;
+use photon_lib::photon::message::PhotonMessage;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

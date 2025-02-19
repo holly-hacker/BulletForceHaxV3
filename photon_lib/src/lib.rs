@@ -2,8 +2,7 @@
 
 #[macro_use]
 pub mod highlevel;
-pub mod photon_message;
-pub mod photon_object_type;
+pub mod photon;
 pub mod primitives;
 
 use std::hash::Hash;
@@ -12,7 +11,7 @@ use highlevel::LiftingError;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
-use photon_object_type::PhotonObject;
+use photon::object::PhotonObject;
 use thiserror::Error;
 
 // TODO: perhaps add info on where the error occured?
@@ -87,7 +86,7 @@ impl std::hash::Hash for ParameterMap {
     }
 }
 
-/// An error that can occur when parsing a message
+/// An error that can occur when reading a message
 #[derive(Debug, Error)]
 pub enum ReadError {
     #[error("not enough bytes left in the buffer")]

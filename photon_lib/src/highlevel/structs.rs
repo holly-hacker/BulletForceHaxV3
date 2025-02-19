@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
 #[allow(unused)]
 use crate::highlevel::constants::{event_code, operation_code, pun_event_code};
-use crate::photon_object_type::{CustomData, PhotonObject};
+use crate::photon::object::{CustomData, PhotonObject};
 use crate::PhotonHashmap;
 
 /// Represents a Photon View ID
@@ -392,7 +392,7 @@ mod tests {
 
     use super::RoomInfo;
     use crate::highlevel::constants::game_property_key;
-    use crate::photon_object_type::PhotonObject;
+    use crate::photon::object::PhotonObject;
 
     #[test]
     fn room_info() {

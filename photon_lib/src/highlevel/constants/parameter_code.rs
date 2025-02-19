@@ -5,7 +5,7 @@
 #[allow(unused)]
 use crate::{
     highlevel::constants::*,
-    photon_message::{EventData, OperationRequest, OperationResponse},
+    photon::message::{EventData, OperationRequest, OperationResponse},
 };
 
 /// (255) Code for the gameId/roomName (a unique name per room). Used in [operation_code::JOIN] and similar.
