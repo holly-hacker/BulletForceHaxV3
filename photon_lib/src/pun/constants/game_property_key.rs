@@ -3,7 +3,7 @@
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
 #[cfg(doc)]
-use crate::highlevel::{constants::*, structs::RoomInfo};
+use crate::pun::{constants::*, structs::RoomInfo};
 
 /// (255) Max number of players that "fit" into this room. 0 is for "unlimited".
 pub const MAX_PLAYERS: u8 = 255;

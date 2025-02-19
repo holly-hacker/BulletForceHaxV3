@@ -7,7 +7,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
     check_remaining,
-    highlevel::WrongPhotonObjectError,
+    pun::WrongPhotonObjectError,
     photon::message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     PhotonDictionary, PhotonHashmap, ReadError, WriteError,

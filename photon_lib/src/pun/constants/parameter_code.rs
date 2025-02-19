@@ -4,7 +4,7 @@
 
 #[cfg(doc)]
 use crate::{
-    highlevel::constants::*,
+    pun::constants::*,
     photon::message::{EventData, OperationRequest, OperationResponse},
 };
 

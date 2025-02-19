@@ -1,17 +1,17 @@
 //! This library aims to help with parsing Photon Unity Networking network packets.
 
 #[macro_use]
-pub mod highlevel;
+pub mod pun;
 pub mod photon;
 pub mod primitives;
 
 use std::hash::Hash;
 
-use highlevel::LiftingError;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
 use photon::object::PhotonObject;
+use pun::LiftingError;
 use thiserror::Error;
 
 // TODO: perhaps add info on where the error occured?

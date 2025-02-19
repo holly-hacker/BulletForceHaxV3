@@ -3,9 +3,9 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::highlevel::constants::{actor_properties, game_property_key, parameter_code};
+use crate::pun::constants::{actor_properties, game_property_key, parameter_code};
 #[cfg(doc)]
-use crate::highlevel::constants::{event_code, operation_code, pun_event_code};
+use crate::pun::constants::{event_code, operation_code, pun_event_code};
 use crate::photon::object::{CustomData, PhotonObject};
 use crate::PhotonHashmap;
 
@@ -391,7 +391,7 @@ mod tests {
     use ordered_float::OrderedFloat;
 
     use super::RoomInfo;
-    use crate::highlevel::constants::game_property_key;
+    use crate::pun::constants::game_property_key;
     use crate::photon::object::PhotonObject;
 
     #[test]

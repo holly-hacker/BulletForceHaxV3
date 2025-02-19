@@ -4,8 +4,8 @@
 
 #[cfg(doc)]
 use crate::{
-    highlevel::{constants::*, structs::RoomInfo},
     photon::message::EventData,
+    pun::{constants::*, structs::RoomInfo},
 };
 
 /// (255) Event Join: someone joined the game. The new actorNumber is provided as well as the properties of that actor (if set in OpJoin).

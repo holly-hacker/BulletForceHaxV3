@@ -36,9 +36,9 @@ macro_rules! impl_u8_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::ParameterMap> for $type_name {
-                type Error = crate::highlevel::LiftingError;
+                type Error = crate::pun::LiftingError;
 
-                fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::highlevel::LiftingError> {
+                fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::pun::LiftingError> {
                     Ok($type_name {
                         // NOTE: we need to use `shift_remove` to retain order for custom_properties later
                         // this may not actually be important, but it allows types converted both ways and be identical
@@ -49,7 +49,7 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_req)?(b)) => b.try_into()?,
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
+                                        return Err(crate::pun::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
@@ -57,7 +57,7 @@ macro_rules! impl_u8_map_conversion {
                                         });
                                     }
                                     None => {
-                                        return Err(crate::highlevel::LiftingError::MissingRequiredField {
+                                        return Err(crate::pun::LiftingError::MissingRequiredField {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                         });
@@ -70,7 +70,7 @@ macro_rules! impl_u8_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
+                                        return Err(crate::pun::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
@@ -141,9 +141,9 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::PhotonHashmap> for $type_name {
-                type Error = crate::highlevel::LiftingError;
+                type Error = crate::pun::LiftingError;
 
-                fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::highlevel::LiftingError> {
+                fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::pun::LiftingError> {
                     Ok($type_name {
                         $(
                             // NOTE: we need to use `shift_remove` to retain order for custom_properties later
@@ -158,7 +158,7 @@ macro_rules! impl_photon_map_conversion {
                                             "When converting {} from map, found {k:?} when expecting object type {}",
                                             stringify!($type_name), stringify!($($map_type_req)?));
                                         tracing::error!("{}", error_message);
-                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
+                                        return Err(crate::pun::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_req),
                                             expected_type: stringify!($($map_type_req)?),
@@ -174,7 +174,7 @@ macro_rules! impl_photon_map_conversion {
                                     Some($($map_type_opt)?(b)) => Some(b.try_into()?),
                                     #[allow(unreachable_patterns)]
                                     Some(k) => {
-                                        return Err(crate::highlevel::LiftingError::UnexpectedObjectTypeInStruct {
+                                        return Err(crate::pun::LiftingError::UnexpectedObjectTypeInStruct {
                                             struct_name: stringify!($type_name),
                                             field_name: stringify!($field_name_opt),
                                             expected_type: stringify!($($map_type_opt)?),
@@ -203,13 +203,13 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::TryFrom<crate::PhotonObject> for $type_name {
-                type Error = crate::highlevel::LiftingError;
+                type Error = crate::pun::LiftingError;
 
-                fn try_from(value: crate::PhotonObject) -> Result<Self, crate::highlevel::LiftingError> {
+                fn try_from(value: crate::PhotonObject) -> Result<Self, crate::pun::LiftingError> {
                     if let crate::PhotonObject::Hashtable(properties) = value {
                         Ok(properties.try_into()?)
                     } else {
-                        Err(crate::highlevel::WrongPhotonObjectError {
+                        Err(crate::pun::WrongPhotonObjectError {
                             // NOTE: type name is known, add this?
                             expected_type: stringify!(Hashtable),
                             actual_value: Box::new(value),
