@@ -4,8 +4,8 @@
 
 #[cfg(doc)]
 use crate::{
-    pun::constants::*,
     photon::message::{EventData, OperationRequest, OperationResponse},
+    pun::constants::*,
 };
 
 /// (255) Code for the gameId/roomName (a unique name per room). Used in [operation_code::JOIN] and similar.

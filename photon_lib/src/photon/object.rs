@@ -6,11 +6,10 @@ use bytes::{Buf, BufMut};
 use ordered_float::OrderedFloat;
 
 use crate::{
-    check_remaining,
-    pun::WrongPhotonObjectError,
+    PhotonDictionary, PhotonHashmap, ReadError, WriteError, check_remaining,
     photon::message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
-    PhotonDictionary, PhotonHashmap, ReadError, WriteError,
+    pun::WrongPhotonObjectError,
 };
 
 /// A serialized .NET object when using the GpBinaryV6 protocol.
@@ -338,7 +337,7 @@ impl PhotonObject {
                     match write_key {
                         true => k.to_bytes(buf)?,
                         false if k.get_type_byte() != *key_type => {
-                            return Err(WriteError::TypeMismatchInTypedDictionary)
+                            return Err(WriteError::TypeMismatchInTypedDictionary);
                         }
                         false => k.to_bytes_without_type_byte(buf)?,
                     };
@@ -346,7 +345,7 @@ impl PhotonObject {
                     match write_val {
                         true => v.to_bytes(buf)?,
                         false if v.get_type_byte() != *val_type => {
-                            return Err(WriteError::TypeMismatchInTypedDictionary)
+                            return Err(WriteError::TypeMismatchInTypedDictionary);
                         }
                         false => v.to_bytes_without_type_byte(buf)?,
                     };

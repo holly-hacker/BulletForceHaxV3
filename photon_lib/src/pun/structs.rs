@@ -3,11 +3,11 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
+use crate::PhotonHashmap;
+use crate::photon::object::{CustomData, PhotonObject};
 use crate::pun::constants::{actor_properties, game_property_key, parameter_code};
 #[cfg(doc)]
 use crate::pun::constants::{event_code, operation_code, pun_event_code};
-use crate::photon::object::{CustomData, PhotonObject};
-use crate::PhotonHashmap;
 
 /// Represents a Photon View ID
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -391,8 +391,8 @@ mod tests {
     use ordered_float::OrderedFloat;
 
     use super::RoomInfo;
-    use crate::pun::constants::game_property_key;
     use crate::photon::object::PhotonObject;
+    use crate::pun::constants::game_property_key;
 
     #[test]
     fn room_info() {

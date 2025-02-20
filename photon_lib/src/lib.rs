@@ -36,9 +36,9 @@ impl std::hash::Hash for PhotonHashmap {
 }
 
 impl<
-        K: TryFrom<PhotonObject, Error = impl Into<LiftingError>> + Hash + Eq,
-        V: TryFrom<PhotonObject, Error = impl Into<LiftingError>>,
-    > TryFrom<PhotonHashmap> for IndexMap<K, V>
+    K: TryFrom<PhotonObject, Error = impl Into<LiftingError>> + Hash + Eq,
+    V: TryFrom<PhotonObject, Error = impl Into<LiftingError>>,
+> TryFrom<PhotonHashmap> for IndexMap<K, V>
 {
     type Error = LiftingError;
 

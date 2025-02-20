@@ -16,7 +16,9 @@ use crate::photon::object::PhotonObject;
 
 #[derive(Error, Debug)]
 pub enum LiftingError {
-    #[error("while lifting {struct_name}::{field_name} expected object type {expected_type} but got value {actual_value:?}")]
+    #[error(
+        "while lifting {struct_name}::{field_name} expected object type {expected_type} but got value {actual_value:?}"
+    )]
     UnexpectedObjectTypeInStruct {
         /// The name of the struct that was being created
         struct_name: &'static str,

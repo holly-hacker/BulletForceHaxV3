@@ -3,7 +3,7 @@
 use bytes::{Buf, BufMut};
 use indexmap::IndexMap;
 
-use crate::{check_remaining, ParameterMap, ReadError, WriteError};
+use crate::{ParameterMap, ReadError, WriteError, check_remaining};
 
 use super::object::PhotonObject;
 
@@ -122,7 +122,7 @@ impl PhotonMessage {
     pub fn to_bytes_without_type_byte(&self, buf: &mut impl BufMut) -> Result<(), WriteError> {
         match self {
             PhotonMessage::Init => {
-                return Err(WriteError::Unimplemented("Init message serialization"))
+                return Err(WriteError::Unimplemented("Init message serialization"));
             }
             PhotonMessage::InitResponse => {
                 buf.put_u8(0);
@@ -227,7 +227,7 @@ impl OperationResponse {
             _ => {
                 return Err(ReadError::UnexpectedData(
                     "expected string or null in operation response debug message",
-                ))
+                ));
             }
         };
 
@@ -293,7 +293,7 @@ impl DisconnectMessage {
             _ => {
                 return Err(ReadError::UnexpectedData(
                     "expected string or null in operation response debug message",
-                ))
+                ));
             }
         };
 
