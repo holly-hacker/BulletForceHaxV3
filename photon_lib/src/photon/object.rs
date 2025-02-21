@@ -6,7 +6,8 @@ use bytes::{Buf, BufMut};
 use ordered_float::OrderedFloat;
 
 use crate::{
-    PhotonDictionary, PhotonHashmap, ReadError, WriteError, check_remaining,
+    PhotonArray, PhotonDictionary, PhotonHashmap, PhotonObjectArray, ReadError, WriteError,
+    check_remaining,
     photon::message::{EventData, OperationRequest, OperationResponse},
     primitives::*,
     pun::WrongPhotonObjectError,
@@ -55,9 +56,9 @@ pub enum PhotonObject {
     /// Object type 0x78, holds a `byte[]`
     ByteArray(Vec<u8>),
     /// Object type 0x79, holds an `Array`. Elements must be of the same type.
-    Array(Vec<PhotonObject>),
+    Array(PhotonArray),
     /// Object type 0x7A, holds an `object[]`
-    ObjectArray(Vec<PhotonObject>),
+    ObjectArray(PhotonObjectArray),
 }
 
 macro_rules! impl_from {
@@ -108,6 +109,8 @@ impl_from! {
     OperationRequest => OperationRequest,
     String => String,
     ByteArray => Vec<u8>,
+    Array => PhotonArray,
+    ObjectArray => PhotonObjectArray,
 }
 
 impl PhotonObject {
@@ -290,7 +293,7 @@ impl PhotonObject {
                     vec![]
                 };
 
-                Ok(PhotonObject::Array(v))
+                Ok(PhotonObject::Array(PhotonArray(v)))
             }
             0x7A => {
                 check_remaining!(bytes, 2);
@@ -305,7 +308,7 @@ impl PhotonObject {
                     v.push(Self::from_bytes(bytes)?);
                 }
 
-                Ok(PhotonObject::ObjectArray(v))
+                Ok(PhotonObject::ObjectArray(PhotonObjectArray(v)))
             }
             _ => Err(ReadError::UnknownObjectType(object_type)),
         }
@@ -415,7 +418,7 @@ impl PhotonObject {
 
                 buf.put_slice(v);
             }
-            PhotonObject::Array(v) => {
+            PhotonObject::Array(PhotonArray(v)) => {
                 if v.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("Array"));
                 }
@@ -434,7 +437,7 @@ impl PhotonObject {
                     item.to_bytes_without_type_byte(buf)?;
                 }
             }
-            PhotonObject::ObjectArray(v) => {
+            PhotonObject::ObjectArray(PhotonObjectArray(v)) => {
                 if v.len() > i16::MAX as usize {
                     return Err(WriteError::ValueTooLarge("ObjectArray"));
                 }
@@ -673,20 +676,20 @@ mod tests {
     );
     generate_test!(
         array,
-        PhotonObject::Array(vec![
+        PhotonObject::Array(PhotonArray(vec![
             PhotonObject::Boolean(true),
             PhotonObject::Boolean(false),
             PhotonObject::Boolean(true)
-        ]),
+        ])),
         "7900036F010001"
     );
     generate_test!(
         object_array,
-        PhotonObject::ObjectArray(vec![
+        PhotonObject::ObjectArray(PhotonObjectArray(vec![
             PhotonObject::String("abc".into()),
             PhotonObject::Null,
             PhotonObject::Short(0x123)
-        ]),
+        ])),
         "7A00037300036162632A6B0123"
     );
 

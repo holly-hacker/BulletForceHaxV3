@@ -3,11 +3,11 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::PhotonHashmap;
 use crate::photon::object::{CustomData, PhotonObject};
 use crate::pun::constants::{actor_properties, game_property_key, parameter_code};
 #[cfg(doc)]
 use crate::pun::constants::{event_code, operation_code, pun_event_code};
+use crate::{PhotonArray, PhotonHashmap, PhotonObjectArray};
 
 /// Represents a Photon View ID
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -166,7 +166,7 @@ impl_u8_map_conversion! {
         sender_actor: i32,
 
         [parameter_code::ACTOR_LIST => PhotonObject::Array]
-        actors: Vec<PhotonObject>,
+        actors: PhotonArray,
 
         [parameter_code::IS_INACTIVE => PhotonObject::Boolean]
         is_inactive: bool,
@@ -336,7 +336,7 @@ impl_photon_map_conversion! {
 
         /// Should be of same length as [Self::views_ids].
         [PhotonObject::Byte(5) => PhotonObject::ObjectArray]
-        incoming_instantiation_data: Vec<PhotonObject>,
+        incoming_instantiation_data: PhotonObjectArray,
 
         @required
         [PhotonObject::Byte(6) => PhotonObject::Integer]
@@ -369,7 +369,7 @@ impl_photon_map_conversion! {
         method_name: String,
 
         [PhotonObject::Byte(4) => PhotonObject::ObjectArray]
-        in_method_parameters: Vec<PhotonObject>,
+        in_method_parameters: PhotonObjectArray,
 
         /// Mutually exclusive with [RpcCall::method_name]
         [PhotonObject::Byte(5) => PhotonObject::Byte]

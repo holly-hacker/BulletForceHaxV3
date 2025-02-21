@@ -1,5 +1,5 @@
 use super::{LiftingError, structs::*};
-use crate::{PhotonHashmap, photon::object::PhotonObject};
+use crate::{PhotonHashmap, PhotonObjectArray, photon::object::PhotonObject};
 
 const PHOTON_NETWORK_MAX_VIEW_IDS: i32 = 1000;
 
@@ -42,7 +42,7 @@ impl SendSerializeEvent {
 
             let found = data.0.get(&PhotonObject::Byte(index));
             let found = match found {
-                Some(PhotonObject::ObjectArray(x)) => x,
+                Some(PhotonObject::ObjectArray(PhotonObjectArray(x))) => x,
                 _ => return None,
             };
             let data = SerializedData::from_object_array(found.clone())?;

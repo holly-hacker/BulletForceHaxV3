@@ -86,6 +86,36 @@ impl std::hash::Hash for ParameterMap {
     }
 }
 
+#[derive(Debug, Default, PartialEq, Eq, Clone, Hash)]
+pub struct PhotonArray(Vec<PhotonObject>);
+
+impl From<Vec<PhotonObject>> for PhotonArray {
+    fn from(value: Vec<PhotonObject>) -> Self {
+        Self(value)
+    }
+}
+
+impl From<PhotonArray> for Vec<PhotonObject> {
+    fn from(value: PhotonArray) -> Self {
+        value.0
+    }
+}
+
+#[derive(Debug, Default, PartialEq, Eq, Clone, Hash)]
+pub struct PhotonObjectArray(Vec<PhotonObject>);
+
+impl From<Vec<PhotonObject>> for PhotonObjectArray {
+    fn from(value: Vec<PhotonObject>) -> Self {
+        Self(value)
+    }
+}
+
+impl From<PhotonObjectArray> for Vec<PhotonObject> {
+    fn from(value: PhotonObjectArray) -> Self {
+        value.0
+    }
+}
+
 /// An error that can occur when reading a message
 #[derive(Debug, Error)]
 pub enum ReadError {
