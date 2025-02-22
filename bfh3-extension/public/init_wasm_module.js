@@ -4,6 +4,7 @@ setTimeout(() => {
 	try {
 		wasm_bindgen();
 	} catch (e) {
-		alert("failed to load bfh wasm bundle");
+		console.error("failed to load bfh wasm bundle:",e);
+		alert("failed to load bfh wasm bundle: " + e);
 	}
 }, 100);
