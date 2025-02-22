@@ -26,6 +26,7 @@ macro_rules! impl_u8_map_conversion {
         )*
     ) => {
         $(
+            #[derive(Debug, Clone)]
             $(#[$type_attr])*
             pub struct $type_name {
                 $(
@@ -38,6 +39,7 @@ macro_rules! impl_u8_map_conversion {
             impl std::convert::TryFrom<crate::ParameterMap> for $type_name {
                 type Error = crate::pun::LiftingError;
 
+                #[allow(unused_variables, unused_mut)]
                 fn try_from(mut properties: crate::ParameterMap) -> Result<Self, crate::pun::LiftingError> {
                     Ok($type_name {
                         // NOTE: we need to use `shift_remove` to retain order for custom_properties later
@@ -86,7 +88,8 @@ macro_rules! impl_u8_map_conversion {
             }
 
             impl std::convert::From<$type_name> for crate::ParameterMap {
-                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                #[allow(unused_variables, unused_mut)]
+                fn from(mut value: $type_name) -> Self {
                     let mut map = Self::default();
 
                     $(
@@ -129,6 +132,7 @@ macro_rules! impl_photon_map_conversion {
         )*
     ) => {
         $(
+            #[derive(Debug, Clone)]
             $(#[$type_attr])*
             pub struct $type_name {
                 $(
@@ -143,6 +147,7 @@ macro_rules! impl_photon_map_conversion {
             impl std::convert::TryFrom<crate::PhotonHashmap> for $type_name {
                 type Error = crate::pun::LiftingError;
 
+                #[allow(unused_variables, unused_mut)]
                 fn try_from(mut properties: crate::PhotonHashmap) -> Result<Self, crate::pun::LiftingError> {
                     Ok($type_name {
                         $(
@@ -205,6 +210,7 @@ macro_rules! impl_photon_map_conversion {
             impl std::convert::TryFrom<crate::PhotonObject> for $type_name {
                 type Error = crate::pun::LiftingError;
 
+                #[allow(unused_variables, unused_mut)]
                 fn try_from(value: crate::PhotonObject) -> Result<Self, crate::pun::LiftingError> {
                     if let crate::PhotonObject::Hashtable(properties) = value {
                         Ok(properties.try_into()?)
@@ -219,7 +225,8 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::From<$type_name> for crate::PhotonHashmap {
-                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                #[allow(unused_variables, unused_mut)]
+                fn from(mut value: $type_name) -> Self {
                     let mut map = Self::default();
 
                     $(
@@ -242,7 +249,8 @@ macro_rules! impl_photon_map_conversion {
             }
 
             impl std::convert::From<$type_name> for crate::PhotonObject {
-                fn from(#[allow(unused_mut)] mut value: $type_name) -> Self {
+                #[allow(unused_variables, unused_mut)]
+                fn from(mut value: $type_name) -> Self {
                     Self::Hashtable(value.into())
                 }
             }

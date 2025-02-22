@@ -224,6 +224,18 @@ pub const ENCRYPTION_DATA: u8 = 192;
 /// (191) An int parameter summarizing several boolean room-options with bit-flags.
 pub const ROOM_OPTION_FLAGS: u8 = 191;
 
+/// (190) Matchmaking ticket (type object).
+pub const TICKET: u8 = 190;
+
+/// (189) Used server side once the group is extracted from the ticket. Clients don't send this.
+pub const MATCH_MAKING_GROUP_ID: u8 = 189;
+
+/// (188) Parameter key to let the server know it may queue the client in low-ccu matchmaking situations.
+pub const ALLOW_REPEATS: u8 = 188;
+
+/// (187) This optional parameter from the server configures the client to send analytics or not.
+pub const REPORT_QOS: u8 = 187;
+
 /// (2) Used in [operation_code::FIND_FRIENDS] request. An integer containing option-flags to filter the results.
 pub const FIND_FRIENDS_OPTIONS: u8 = 2;
 

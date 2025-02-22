@@ -3,7 +3,7 @@
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
 #[cfg(doc)]
-use crate::pun::{constants::*, structs::RoomInfo};
+use crate::pun::{constants::*, lifting::RoomInfo};
 
 /// (255) Max number of players that "fit" into this room. 0 is for "unlimited".
 pub const MAX_PLAYERS: u8 = 255;
@@ -40,3 +40,8 @@ pub const PLAYER_TTL: u8 = 246;
 
 /// (245) Room Time To Live. How long a room stays available (and in server-memory), after the last player becomes inactive. After this time, the room gets persisted or destroyed.
 pub const EMPTY_ROOM_TTL: u8 = 245;
+
+/// (243) Integer-typed max number of players that "fit" into a room. 0 is for "unlimited".
+///
+/// Used to be 244 between versions Realtime v4.1.7.2 and 4.1.7.4.
+pub const MAX_PLAYERS_INT: u8 = 243;

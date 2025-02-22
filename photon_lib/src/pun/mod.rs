@@ -5,14 +5,19 @@
 mod macro_impl;
 
 pub mod constants;
-pub mod structs;
-mod structs_impl;
+pub mod lifting;
+mod newtypes;
+
+pub use newtypes::*;
 
 use std::convert::Infallible;
 
 use thiserror::Error;
 
-use crate::photon::object::PhotonObject;
+use crate::{
+    ParameterMap,
+    photon::{message::PhotonMessageType, object::PhotonObject},
+};
 
 #[derive(Error, Debug)]
 pub enum LiftingError {
@@ -37,6 +42,13 @@ pub enum LiftingError {
         struct_name: &'static str,
         /// The name of the field that was missing
         field_name: &'static str,
+    },
+    #[error("Unknown message code {message_code} for a {message_type:?}")]
+    UnknownMessageCode {
+        message_type: PhotonMessageType,
+        message_code: u8,
+        parameters: ParameterMap,
+        operation_response_data: Option<(i16, Option<String>)>,
     },
 }
 

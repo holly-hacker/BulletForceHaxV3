@@ -7,6 +7,21 @@ use crate::{ParameterMap, ReadError, WriteError, check_remaining};
 
 use super::object::PhotonObject;
 
+#[derive(Debug, Clone, Copy)]
+pub enum PhotonMessageType {
+    Init,
+    InitResponse,
+    OperationRequest,
+    OperationResponse,
+    EventData,
+    DisconnectMessage,
+    InternalOperationRequest,
+    InternalOperationResponse,
+    Message,
+    RawMessage,
+    PingResult,
+}
+
 /// Describes a low-level message that comes in or goes out over the wire.
 ///
 /// See also: `ExitGames.Client.Photon.EgMessageType` in Photon3Unity3D.dll.
