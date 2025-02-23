@@ -1,9 +1,9 @@
-//! Keys used by [Player]
+//! Keys used by `Player``
 //!
 //! Note that the documentation and deprecation attributes come from Photon with only minor edits.
 
 #[cfg(doc)]
-use crate::pun::{constants::*, structs::Player};
+use crate::pun::constants::*;
 
 /// (255) Name of a player/actor.
 pub const PLAYER_NAME: u8 = 255; // was: 1

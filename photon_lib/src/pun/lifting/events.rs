@@ -9,9 +9,6 @@ use crate::{
     pun::{LiftingError, ViewId, constants::*},
 };
 
-#[cfg(doc)]
-use crate::pun::structs::Player;
-
 pub trait ParseEventExt {
     fn parse(self) -> Result<PunEvent, LiftingError>;
 }
@@ -367,8 +364,6 @@ impl_photon_map_conversion! {
         empty_room_ttl: i32,
 
         /// How long a player stays "active" after disconnecting. As long as this time has not passed, their slot stays occupied.
-        ///
-        /// See also [Player::is_inactive].
         [PhotonObject::Byte(game_property_key::PLAYER_TTL) => PhotonObject::Integer]
         player_ttl: i32,
     }
