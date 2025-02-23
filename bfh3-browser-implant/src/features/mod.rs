@@ -1,10 +1,15 @@
+mod devtools;
 mod lobby;
 
 use photon_lib::{photon::message::PhotonMessage, pun::lifting::RoomInfoList};
 
 use crate::networking::{PacketAction, PacketDirection, SocketType};
 
-pub const ALL_FEATURES: [&dyn Feature; 2] = [&DummyFeature, &lobby::LobbyFeature];
+pub const ALL_FEATURES: [&dyn Feature; 3] = [
+    &DummyFeature,
+    &devtools::DevtoolsFeature,
+    &lobby::LobbyFeature,
+];
 
 pub trait Feature {
     fn get_name(&self) -> &'static str;

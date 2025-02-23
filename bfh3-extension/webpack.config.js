@@ -18,6 +18,8 @@ const config = (_env, argv) => ({
 		contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
 		webAccessibleResources_gameFrameRuntime: PATHS.src + '/webAccessibleResources/gameFrameRuntime/index.ts',
 		background: PATHS.src + '/background.ts',
+		devtools_page: PATHS.src + '/devtools/page.ts',
+		devtools_panel: PATHS.src + '/devtools/panel.tsx',
 	},
 	devtool: argv.mode === 'development' ? 'inline-source-map' : false,
 	output: {
@@ -52,7 +54,7 @@ const config = (_env, argv) => ({
 		// Build the rust project
 		new WasmPackPlugin({
 			crateDirectory: path.resolve(__dirname, '../bfh3-browser-implant'),
-			extraArgs: argv.mode === 'development' ? '--target no-modules --no-pack' : '--target no-modules --no-pack --no-typescript',
+			extraArgs: '--target no-modules --no-pack',
 			outDir: '../bfh3-extension/bfh3-browser-implant'
 		}),
 

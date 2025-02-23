@@ -194,12 +194,14 @@ fn dispatch_to_features(
     res
 }
 
+#[wasm_bindgen::prelude::wasm_bindgen]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PacketDirection {
     Send,
     Recv,
 }
 
+#[wasm_bindgen::prelude::wasm_bindgen]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SocketType {
     Lobby,

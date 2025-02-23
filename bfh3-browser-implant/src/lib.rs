@@ -1,7 +1,7 @@
 mod features;
 mod networking;
 
-use networking::PacketAction;
+use networking::{PacketAction, PacketDirection, SocketType};
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::FmtSubscriber;
 use wasm_bindgen::prelude::*;
@@ -9,6 +9,9 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: &str);
+
+    #[wasm_bindgen(js_name = "sendMessageToDevtools")]
+    fn send_message_to_devtools(msg: DevtoolsMessage);
 }
 
 #[wasm_bindgen(start)]
@@ -76,4 +79,23 @@ pub async fn on_ws_recv(message: Vec<u8>, origin: &str) -> Option<Vec<u8>> {
 #[wasm_bindgen]
 pub fn on_ws_close(url: &str) {
     info!(url, "Connection closed");
+}
+
+#[wasm_bindgen]
+pub struct DevtoolsMessage {
+    /// The direction the packet was going
+    pub direction: PacketDirection,
+    /// Which server the socket is connected to
+    pub socket_type: SocketType,
+    /// The type of the message
+    pub message_type: u8,
+    /// The raw message, encoded as MessagePack
+    #[wasm_bindgen(getter_with_clone)]
+    pub message: Vec<u8>,
+    /// The high-level message (if any), encoded as MessagePack
+    #[wasm_bindgen(getter_with_clone)]
+    pub parsed_message: Option<Vec<u8>>,
+    /// The parsing error, if any occurred
+    #[wasm_bindgen(getter_with_clone)]
+    pub error: Option<String>,
 }

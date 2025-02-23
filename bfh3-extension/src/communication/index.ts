@@ -1,7 +1,9 @@
 const GET_PATCHED_FILE = 'GetPatchedFile';
+const SEND_DEVTOOLS_MESSAGE = 'SendDevtoolsMessage';
 
 type AnyRequest =
-	| { type: typeof GET_PATCHED_FILE, data: GetPatchedFileRequest };
+	| { type: typeof GET_PATCHED_FILE, data: GetPatchedFileRequest }
+	| { type: typeof SEND_DEVTOOLS_MESSAGE, data: DevtoolsMessage };
 
 interface GetPatchedFileRequest {
 	url: string;
@@ -22,13 +24,41 @@ async function getPatchedFile(request: GetPatchedFileRequest, extensionId?: stri
 	);
 }
 
+interface DevtoolsMessage {
+	/** The direction the packet was going */
+	direction: "send" | "recv";
+	/** Which server the socket is connected to */
+	socketType: "lobby" | "game";
+	/** The type of the message */
+	messageType: number;
+	/** The raw message, encoded as MessagePack */
+	message: string;
+	/** The high-level message (if any), encoded as MessagePack */
+	parsedMessage?: string;
+	/** The parsing error, if any occurred */
+	error?: string;
+
+}
+
+async function sendDevtoolsMessage(request: DevtoolsMessage, extensionId?: string): Promise<void> {
+	return await chromeRuntimeSend(
+		{ type: SEND_DEVTOOLS_MESSAGE, data: request },
+		extensionId
+	);
+}
+
 function chromeRuntimeSend(request: AnyRequest, extensionId: string | undefined): Promise<any> {
-	return new Promise((resolve) => {
-		chrome.runtime.sendMessage(extensionId, request, response => resolve(response));
+	return new Promise((resolve, reject) => {
+		try {
+			chrome.runtime.sendMessage(extensionId, request, response => resolve(response));
+		} catch (e) {
+			reject(e);
+		}
 	});
 }
 
 export {
 	AnyRequest,
 	getPatchedFile, GET_PATCHED_FILE, GetPatchedFileRequest, GetPatchedFileResponse,
+	sendDevtoolsMessage, SEND_DEVTOOLS_MESSAGE, DevtoolsMessage,
 }

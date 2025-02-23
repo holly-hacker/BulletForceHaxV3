@@ -1,8 +1,8 @@
 const log = function (...data: any) {
-    console.log("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
+	console.log("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
 const logError = function (...data: any) {
-    console.error("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
+	console.error("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
 
 function onDomLoaded(callback: () => void) {
