@@ -170,7 +170,12 @@ macro_rules! impl_photon_map_conversion {
                                             actual_value: Box::new(k),
                                         });
                                     }
-                                    _ => todo!("error handling in from_map for missing req field"), // TODO: error handling here!!
+                                    None => {
+                                        return Err(crate::pun::LiftingError::MissingRequiredField {
+                                            struct_name: stringify!($type_name),
+                                            field_name: stringify!($field_name_req),
+                                        });
+                                    }
                                 },
                             )?
                             $(
