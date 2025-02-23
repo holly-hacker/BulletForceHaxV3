@@ -48,7 +48,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "webAccessibleResources_gameFrame_loadGameHook.js",
+                "webAccessibleResources_gameFrameRuntime.js",
                 "wasm/index.js",
                 "wasm/index_bg.wasm",
                 "init_wasm_module.js"

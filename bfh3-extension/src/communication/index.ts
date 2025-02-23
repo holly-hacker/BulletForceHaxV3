@@ -12,12 +12,20 @@ interface GetPatchedFileResponse {
 	js: string;
 }
 
-function getPatchedFile(request: GetPatchedFileRequest, callback: (response: GetPatchedFileResponse) => void, extensionId?: string) {
-	doSend({ type: GET_PATCHED_FILE, data: request }, callback, extensionId);
+/**
+ * Request a patched game file URL from the background script
+ */
+async function getPatchedFile(request: GetPatchedFileRequest, extensionId?: string): Promise<GetPatchedFileResponse> {
+	return await chromeRuntimeSend(
+		{ type: GET_PATCHED_FILE, data: request },
+		extensionId
+	);
 }
 
-function doSend(request: AnyRequest, callback: (response: any) => void, extensionId: string | undefined) {
-	chrome.runtime.sendMessage(extensionId, request, callback);
+function chromeRuntimeSend(request: AnyRequest, extensionId: string | undefined): Promise<any> {
+	return new Promise((resolve) => {
+		chrome.runtime.sendMessage(extensionId, request, response => resolve(response));
+	});
 }
 
 export {

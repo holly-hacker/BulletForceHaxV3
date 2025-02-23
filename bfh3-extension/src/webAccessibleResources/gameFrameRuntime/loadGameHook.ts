@@ -1,6 +1,7 @@
-import { getPatchedFile } from "../communication";
-import { log, logError } from "../util";
+import { getPatchedFile } from "../../communication";
+import { log, logError } from "../../util";
 
+// can't put these in a `.d.ts` file?
 declare global {
 	interface Window {
 		/** The original loadGame function */
@@ -46,17 +47,22 @@ interface Unity2020Config {
 	unitySaveFileNames: any, // unknown
 }
 
-window.loadGameHook = function (extensionId: string) {
-	if (window.config.type !== Unity2020ConfigType) {
-		logError(`config type is not ${Unity2020ConfigType}, but is instead`, window.config.type)
-		return;
-	}
+export default function () {
+	window.loadGameHook = async function (extensionId: string) {
+		if (window.config.type !== Unity2020ConfigType) {
+			logError(`config type is not ${Unity2020ConfigType}, but is instead`, window.config.type)
+			return;
+		}
 
-	let unityConfig = window.config as Unity2020Config; // type system is not smart enough to recognize this
+		let unityConfig = window.config as Unity2020Config; // type system is not smart enough to recognize this
 
-	// get the patched loader, put it in the loader object and call the original loadGame function
-	// this function should have been updated to load the `src` function
-	getPatchedFile({ url: unityConfig.loaderOptions.unityConfigOptions.frameworkUrl, role: 'FRAMEWORK' }, ({ js }) => {
+		// get the patched loader, put it in the loader object and call the original loadGame function
+		// this function should have been updated to load the `src` function
+		const { js } = await getPatchedFile(
+			{ url: unityConfig.loaderOptions.unityConfigOptions.frameworkUrl, role: 'FRAMEWORK' },
+			extensionId
+		);
+
 		const blob = new Blob([js], { type: "application/javascript" });
 		const blobUrl = URL.createObjectURL(blob);
 		unityConfig.loaderOptions.unityConfigOptions.frameworkUrl = blobUrl;
@@ -64,5 +70,5 @@ window.loadGameHook = function (extensionId: string) {
 		log("Patched framework url to", blobUrl);
 
 		window.loadGame();
-	}, extensionId);
-};
+	};
+}

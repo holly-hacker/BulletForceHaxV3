@@ -6,7 +6,7 @@ log("Running game frame document_start script");
 
 // add our loadGameHook script
 onDomLoaded(() => {
-	const loaddGameHookUrl = chrome.runtime.getURL("webAccessibleResources_gameFrame_loadGameHook.js");
+	const loaddGameHookUrl = chrome.runtime.getURL("webAccessibleResources_gameFrameRuntime.js");
 	const scriptNode = document.createElement("script");
 	scriptNode.src = loaddGameHookUrl;
 	document.body.append(scriptNode);

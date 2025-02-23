@@ -16,7 +16,7 @@ const config = (_env, argv) => ({
 	entry: {
 		sidepanel: PATHS.src + '/sidepanel/index.tsx',
 		contentScripts_gameFrame_documentStart: PATHS.src + '/contentScripts/gameFrameDocumentStart.ts',
-		webAccessibleResources_gameFrame_loadGameHook: PATHS.src + '/webAccessibleResources/gameFrameLoadGameHook.ts',
+		webAccessibleResources_gameFrameRuntime: PATHS.src + '/webAccessibleResources/gameFrameRuntime/index.ts',
 		background: PATHS.src + '/background.ts',
 	},
 	devtool: argv.mode === 'development' ? 'inline-source-map' : false,
