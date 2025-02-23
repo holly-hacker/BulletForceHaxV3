@@ -78,7 +78,7 @@ impl ParseOperationRequestExt for OperationRequest {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub enum PunOperationRequest {
     // 255: join?
     Leave(Box<LeaveRequest>),                 // 254

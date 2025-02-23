@@ -26,7 +26,7 @@ macro_rules! impl_u8_map_conversion {
         )*
     ) => {
         $(
-            #[derive(Debug, Clone)]
+            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
             $(#[$type_attr])*
             pub struct $type_name {
                 $(
@@ -132,7 +132,7 @@ macro_rules! impl_photon_map_conversion {
         )*
     ) => {
         $(
-            #[derive(Debug, Clone)]
+            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
             $(#[$type_attr])*
             pub struct $type_name {
                 $(

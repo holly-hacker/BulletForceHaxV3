@@ -25,7 +25,7 @@ pub enum PhotonMessageType {
 /// Describes a low-level message that comes in or goes out over the wire.
 ///
 /// See also: `ExitGames.Client.Photon.EgMessageType` in Photon3Unity3D.dll.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum PhotonMessage {
     /// Message type 0x00
     Init,
@@ -176,7 +176,7 @@ impl PhotonMessage {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PingResult {
     server_sent_time: i32,
     client_sent_time: i32,
@@ -198,7 +198,7 @@ impl PingResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct OperationRequest {
     pub operation_code: u8,
     pub parameters: ParameterMap,
@@ -223,7 +223,7 @@ impl OperationRequest {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct OperationResponse {
     pub operation_code: u8,
     pub return_code: i16,
@@ -268,7 +268,7 @@ impl OperationResponse {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct EventData {
     pub code: u8,
     pub parameters: ParameterMap,
@@ -291,7 +291,7 @@ impl EventData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct DisconnectMessage {
     pub code: i16,
     pub debug_message: Option<String>,

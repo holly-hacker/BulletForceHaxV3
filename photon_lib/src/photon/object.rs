@@ -16,7 +16,7 @@ use crate::{
 /// A serialized .NET object when using the GpBinaryV6 protocol.
 ///
 /// See also: `ExitGames.Client.Photon.Protocol16.GpType` in Photon3Unity3D.dll.
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum PhotonObject {
     #[default]
     /// Object type 0x2A, represents .NET's `null`
@@ -478,7 +478,7 @@ impl PhotonObject {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum CustomData {
     Vector2(Vector2),
     Vector3(Vector3),

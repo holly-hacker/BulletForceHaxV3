@@ -78,7 +78,7 @@ impl ParseOperationResponseExt for OperationResponse {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub enum PunOperationResponse {
     Leave(Box<EmptyResponse>),                   // 253
     RaiseEvent(Box<EmptyResponse>),              // 253
