@@ -39,12 +39,14 @@ chrome.runtime.onMessageExternal.addListener(onMessage);
 
 // TODO: pass if external message or not. may be security issue.
 function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
-
 	switch (request.type) {
 		case GET_PATCHED_FILE: {
 			log(`incoming patched file request from ${sender.url}`, request);
 			handleGetPatchedFile(request.data).then(sendResponse);
 			return true; // true means sending a response later
+		}
+		default: {
+			sendResponse(undefined);
 		}
 	}
 }

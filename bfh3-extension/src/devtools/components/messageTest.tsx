@@ -5,18 +5,23 @@ import { log } from "../../util";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 
-function registerMessageHandler(cb: (msg: DevtoolsMessage) => void) {
+function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
 	chrome.runtime.onMessage.addListener(onMessage);
 
-	function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, _sendResponse: (response?: any) => void) {
-		log(`incoming request from ${sender.url}`, request);
+	function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+		// log(`incoming request from ${sender.url}`, request);
 
 		switch (request.type) {
 			case SEND_DEVTOOLS_MESSAGE: {
 				cb(request.data);
+				sendResponse(undefined);
 			}
+			default: {
+				sendResponse(undefined);
 		}
 	}
+
+	return () => chrome.runtime.onMessage.removeListener(onMessage);
 }
 
 export default function () {
