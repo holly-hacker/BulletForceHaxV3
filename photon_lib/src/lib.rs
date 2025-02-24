@@ -2,6 +2,7 @@
 
 #[macro_use]
 pub mod pun;
+mod hashmap_serde;
 pub mod photon;
 pub mod primitives;
 
@@ -27,7 +28,7 @@ pub(crate) use check_remaining;
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PhotonHashmap(IndexMap<PhotonObject, PhotonObject>);
+pub struct PhotonHashmap(#[serde(with = "hashmap_serde")] IndexMap<PhotonObject, PhotonObject>);
 
 impl std::hash::Hash for PhotonHashmap {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -68,7 +69,7 @@ impl<K: Into<PhotonObject>, V: Into<PhotonObject>> From<IndexMap<K, V>> for Phot
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PhotonDictionary(IndexMap<PhotonObject, PhotonObject>);
+pub struct PhotonDictionary(#[serde(with = "hashmap_serde")] IndexMap<PhotonObject, PhotonObject>);
 
 impl std::hash::Hash for PhotonDictionary {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {

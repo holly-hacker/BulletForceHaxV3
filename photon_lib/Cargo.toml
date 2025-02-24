@@ -16,3 +16,4 @@ tracing = "0.1.41"
 
 [dev-dependencies]
 hex = "0.4"
+serde_json = { version = "1.0.139", features = ["indexmap", "preserve_order"] }
