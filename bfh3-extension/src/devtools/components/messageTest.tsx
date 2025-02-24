@@ -60,7 +60,7 @@ const columns = [
 	columnHelper.display({
 		id: 'parsedName',
 		header: 'Parameter Type',
-		cell: props => <code>{getParsedName(props.row.original) ?? '<unknown>'}</code>,
+		cell: props => getParsedName(props.row.original) ?? '<unknown>',
 	}),
 	columnHelper.accessor('error', {
 		header: 'Error',
@@ -131,8 +131,7 @@ export default function () {
 
 	return (
 		<>
-			<h3>Messages:</h3>
-			<table>
+			<table className="devtools-table">
 				<thead>
 					{table.getHeaderGroups().map(headerGroup => (
 						<tr key={headerGroup.id}>
@@ -148,7 +147,7 @@ export default function () {
 				</thead>
 				<tbody>
 					{table.getRowModel().rows.map(row => (
-						<tr key={row.id}>
+						<tr key={row.id} className={row.original.error ? "has-error" : ""}>
 							{row.getVisibleCells().map(cell => (
 								<td key={cell.id}>
 									{flexRender(cell.column.columnDef.cell, cell.getContext())}

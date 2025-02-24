@@ -1,0 +1,56 @@
+:root {
+	/* Colors borrowed from chrome devtools' stylesheet */
+	--color-text: #e9e1de;
+	--color-text-error: #ffb4ab;
+	--color-bg: #282321;
+	--color-divider: #5e4f47;
+
+	--surface-1: color-mix(in sRGB, #dec1b1ff 5%, #1e1b19ff);
+	--color-grid-odd: var(--surface-1);
+	--color-grid-even: #1e1b19;
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+}
+
+table.devtools-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table.devtools-table thead {
+	background-color: var(--surface-1);
+}
+
+table.devtools-table thead th, table.devtools-table td {
+	text-align: left;
+	text-overflow: ellipsis;
+	border: 1px solid var(--color-divider);
+}
+
+table.devtools-table tr {
+	background-color: var(--surface-1);
+}
+
+table.devtools-table tr.has-error {
+	color: var(--color-text-error);
+}
+
+table.devtools-table th {
+	padding: 4px;
+}
+
+table.devtools-table td {
+	padding: 2px 4px;
+	font-size: 12px;
+}
+
+table.devtools-table tr:nth-child(odd) {
+	background-color: var(--color-grid-odd);
+}
+
+table.devtools-table tr:nth-child(even) {
+	background-color: var(--color-grid-even);
+}
