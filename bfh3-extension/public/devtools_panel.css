@@ -1,13 +1,32 @@
 :root {
-	/* Colors borrowed from chrome devtools' stylesheet */
-	--color-text: #e9e1de;
-	--color-text-error: #ffb4ab;
-	--color-bg: #282321;
-	--color-divider: #5e4f47;
+	/* Nord theme */
+	--nord0: #2e3440; /* dark: background, light: text */
+	--nord1: #3b4252; /* dark: elevated ui (panels, status bar, buttons/text), light: dim text */
+	--nord2: #434c5e; /* dark: text selection, both: lighter ver of nord1 */
+	--nord3: #4c566a; /* dark: ?, light: subtle UI elements */
+	--nord4: #d8dee9; /* dark: caret, light: elevated ui (panels, status bar, buttons/text), borders */
+	--nord5: #e5e9f0; /* dark: dim text, light: text selection */
+	--nord6: #eceff4; /* dark: elevated ui, light: background */
+	--nord7: #8fbcbb; /* stand out compared to nord8? */
+	--nord8: #88c0d0; /* primary UI elements */
+	--nord9: #81a1c1; /* secondary UI elements */
+	--nord10: #5e81ac; /* tertiary UI elements */
+	--nord11: #bf616a; /* error state */
+	--nord12: #d08770; /* rarely used, "advanced" or "dangerous" */
+	--nord13: #ebcb8b; /* warning state */
+	--nord14: #a3be8c; /* success state */
+	--nord15: #b48ead; /* rarely used, uncommon functionality */
+}
 
-	--surface-1: color-mix(in sRGB, #dec1b1ff 5%, #1e1b19ff);
-	--color-grid-odd: var(--surface-1);
-	--color-grid-even: #1e1b19;
+:root {
+	/* Colors borrowed from chrome devtools' stylesheet */
+	--color-text: var(--nord5);
+	--color-text-error: var(--nord11);
+	--color-bg: var(--nord0);
+	--color-divider: var(--nord3);
+
+	--color-grid-odd: var(--nord1);
+	--color-grid-even: var(--nord2);
 }
 
 body {
@@ -21,17 +40,13 @@ table.devtools-table {
 }
 
 table.devtools-table thead {
-	background-color: var(--surface-1);
+	background-color: var(--color-grid-even);
 }
 
 table.devtools-table thead th, table.devtools-table td {
 	text-align: left;
 	text-overflow: ellipsis;
 	border: 1px solid var(--color-divider);
-}
-
-table.devtools-table tr {
-	background-color: var(--surface-1);
 }
 
 table.devtools-table tr.has-error {
