@@ -29,6 +29,11 @@
 	--color-grid-even: var(--nord2);
 }
 
+html, body, div {
+	margin: 0;
+	padding: 0;
+}
+
 body {
 	background-color: var(--color-bg);
 	color: var(--color-text);
@@ -43,7 +48,8 @@ table.devtools-table thead {
 	background-color: var(--color-grid-even);
 }
 
-table.devtools-table thead th, table.devtools-table td {
+table.devtools-table thead th,
+table.devtools-table td {
 	text-align: left;
 	text-overflow: ellipsis;
 	border: 1px solid var(--color-divider);
@@ -62,10 +68,10 @@ table.devtools-table td {
 	font-size: 12px;
 }
 
-table.devtools-table tr:nth-child(odd) {
+table.devtools-table tr.is-odd {
 	background-color: var(--color-grid-odd);
 }
 
-table.devtools-table tr:nth-child(even) {
+table.devtools-table tr.is-even {
 	background-color: var(--color-grid-even);
 }

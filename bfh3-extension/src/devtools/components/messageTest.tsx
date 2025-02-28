@@ -1,10 +1,11 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnyRequest, DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication";
 import { log } from "../../util";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, RowModel, Table, useReactTable } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 interface UnpackedDevtoolsMessage {
 	/** The direction the packet was going */
@@ -46,8 +47,8 @@ const columns = [
 	columnHelper.accessor('direction', {
 		header: 'Dir',
 		cell: info => info.getValue() == 'recv'
-		? <span style={({color: 'red'})}>⬇</span>
-		: <span style={({color: 'lime'})}>⬆</span>,
+			? <span style={{ color: 'red' }}>⬇</span>
+			: <span style={{ color: 'lime' }}>⬆</span>,
 	}),
 	columnHelper.accessor('socketType', {
 		header: 'Socket',
@@ -97,13 +98,13 @@ function getParsedName(message: UnpackedDevtoolsMessage): String | null {
 	return keys[0] ? keys[0] : null;
 }
 
-export default function () {
+export default function ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement | null> }) {
 	let [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
 
 	useEffect(() => {
 		return registerMessageHandler((msg) => {
 			let message, parsedMessage, error;
-			try	{
+			try {
 				message = Msgpack.decode(Base64.toByteArray(msg.message)) as Object;
 				parsedMessage = msg.parsedMessage ? Msgpack.decode(Base64.toByteArray(msg.parsedMessage)) as Object : undefined;
 				error = msg.error;
@@ -123,14 +124,22 @@ export default function () {
 		});
 	}, []);
 
+	const virtualizer = useVirtualizer({
+		count: messages.length,
+		getScrollElement: () => scrollRef.current,
+		estimateSize: (_idx) => 20,
+	});
+
 	const table = useReactTable({
 		columns,
 		data: messages,
 		getCoreRowModel: getCoreRowModel()
 	});
 
+	const { rows } = table.getRowModel();
+
 	return (
-		<>
+		<div style={{ height: `${virtualizer.getTotalSize()}px` }}>
 			<table className="devtools-table">
 				<thead>
 					{table.getHeaderGroups().map(headerGroup => (
@@ -146,17 +155,26 @@ export default function () {
 					))}
 				</thead>
 				<tbody>
-					{table.getRowModel().rows.map(row => (
-						<tr key={row.id} className={row.original.error ? "has-error" : ""}>
-							{row.getVisibleCells().map(cell => (
-								<td key={cell.id}>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</td>
-							))}
-						</tr>
-					))}
+					{virtualizer.getVirtualItems().map((virtualRow, index) => {
+						const row = rows[virtualRow.index];
+						return (
+							<tr
+								key={row.id}
+								className={`${row.original.error ? "has-error" : ""} ${virtualRow.index % 2 ? 'is-even' : 'is-odd'}`}
+								style={{
+									height: `${virtualRow.size}px`,
+									transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
+								}}
+							>
+								{row.getVisibleCells().map(cell => (
+									<td key={cell.id}>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
+								))}
+							</tr>);
+					})}
 				</tbody>
 			</table>
-		</>
+		</div>
 	);
 }
