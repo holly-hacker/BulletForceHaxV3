@@ -28,45 +28,59 @@ impl super::Feature for DevtoolsFeature {
 
         let msg_bytes = rmp_serde::to_vec_named(msg).context("serialize messagepack")?;
 
-        let (msg_type, parsed_bytes) =
-            match msg {
-                PhotonMessage::Init => (PhotonMessageType::Init, None),
-                PhotonMessage::InitResponse => (PhotonMessageType::InitResponse, None),
-                PhotonMessage::OperationRequest(arg) => (
-                    PhotonMessageType::OperationRequest,
-                    Some(arg.clone().parse().context("parse message").and_then(|p| {
-                        rmp_serde::to_vec_named(&p).context("serialize messagepack")
-                    })),
+        let (msg_type, parsed_bytes) = match msg {
+            PhotonMessage::Init => (PhotonMessageType::Init, None),
+            PhotonMessage::InitResponse => (PhotonMessageType::InitResponse, None),
+            PhotonMessage::OperationRequest(arg) => (
+                PhotonMessageType::OperationRequest,
+                Some(
+                    arg.clone()
+                        .parse()
+                        .context("parse OperationRequest message")
+                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
                 ),
-                PhotonMessage::OperationResponse(arg) => (
-                    PhotonMessageType::OperationResponse,
-                    Some(arg.clone().parse().context("parse message").and_then(|p| {
-                        rmp_serde::to_vec_named(&p).context("serialize messagepack")
-                    })),
+            ),
+            PhotonMessage::OperationResponse(arg) => (
+                PhotonMessageType::OperationResponse,
+                Some(
+                    arg.clone()
+                        .parse()
+                        .context("parse OperationResponse message")
+                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
                 ),
-                PhotonMessage::EventData(arg) => (
-                    PhotonMessageType::EventData,
-                    Some(arg.clone().parse().context("parse message").and_then(|p| {
-                        rmp_serde::to_vec_named(&p).context("serialize messagepack")
-                    })),
+            ),
+            PhotonMessage::EventData(arg) => (
+                PhotonMessageType::EventData,
+                Some(
+                    arg.clone()
+                        .parse()
+                        .context("parse EventData message")
+                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
                 ),
-                PhotonMessage::DisconnectMessage(_) => (PhotonMessageType::DisconnectMessage, None),
-                PhotonMessage::InternalOperationRequest(arg) => (
-                    PhotonMessageType::InternalOperationRequest,
-                    Some(arg.clone().parse().context("parse message").and_then(|p| {
-                        rmp_serde::to_vec_named(&p).context("serialize messagepack")
-                    })),
+            ),
+            PhotonMessage::DisconnectMessage(_) => (PhotonMessageType::DisconnectMessage, None),
+            PhotonMessage::InternalOperationRequest(arg) => (
+                PhotonMessageType::InternalOperationRequest,
+                Some(
+                    arg.clone()
+                        .parse()
+                        .context("parse InternalOperationRequest message")
+                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
                 ),
-                PhotonMessage::InternalOperationResponse(arg) => (
-                    PhotonMessageType::InternalOperationResponse,
-                    Some(arg.clone().parse().context("parse message").and_then(|p| {
-                        rmp_serde::to_vec_named(&p).context("serialize messagepack")
-                    })),
+            ),
+            PhotonMessage::InternalOperationResponse(arg) => (
+                PhotonMessageType::InternalOperationResponse,
+                Some(
+                    arg.clone()
+                        .parse()
+                        .context("parse InternalOperationResponse message")
+                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
                 ),
-                PhotonMessage::Message(_) => (PhotonMessageType::Message, None),
-                PhotonMessage::RawMessage(_) => (PhotonMessageType::RawMessage, None),
-                PhotonMessage::PingResult(_) => (PhotonMessageType::PingResult, None),
-            };
+            ),
+            PhotonMessage::Message(_) => (PhotonMessageType::Message, None),
+            PhotonMessage::RawMessage(_) => (PhotonMessageType::RawMessage, None),
+            PhotonMessage::PingResult(_) => (PhotonMessageType::PingResult, None),
+        };
 
         let (parsed_bytes, error) = parsed_bytes
             .map(|res| match res {
