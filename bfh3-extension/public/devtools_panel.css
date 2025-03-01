@@ -27,6 +27,7 @@
 
 	--color-grid-odd: var(--nord1);
 	--color-grid-even: var(--nord2);
+	--color-grid-selected: oklch(from var(--nord3) calc(l * 110%) c h);
 }
 
 html, body, div {
@@ -74,4 +75,8 @@ table.devtools-table tr.is-odd {
 
 table.devtools-table tr.is-even {
 	background-color: var(--color-grid-even);
+}
+
+table.devtools-table tr.is-selected {
+	background-color: var(--color-grid-selected);
 }

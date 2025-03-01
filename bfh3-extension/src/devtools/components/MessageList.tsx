@@ -1,13 +1,12 @@
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnyRequest, DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication";
-import { log } from "../../util";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, RowModel, Table, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-interface UnpackedDevtoolsMessage {
+export interface UnpackedDevtoolsMessage {
 	/** The direction the packet was going */
 	direction: "send" | "recv";
 	/** Which server the socket is connected to */
@@ -25,7 +24,7 @@ interface UnpackedDevtoolsMessage {
 function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
 	chrome.runtime.onMessage.addListener(onMessage);
 
-	function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+	function onMessage(request: AnyRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
 		// log(`incoming request from ${sender.url}`, request);
 
 		switch (request.type) {
@@ -98,7 +97,11 @@ function getParsedName(message: UnpackedDevtoolsMessage): String | null {
 	return keys[0] ? keys[0] : null;
 }
 
-export default function ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement | null> }) {
+export default function ({ scrollRef, selectedMessage, onItemSelected }: {
+	scrollRef: React.RefObject<HTMLDivElement | null>,
+	selectedMessage: UnpackedDevtoolsMessage | null,
+	onItemSelected: (a: UnpackedDevtoolsMessage) => void,
+}) {
 	let [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
 
 	useEffect(() => {
@@ -119,7 +122,6 @@ export default function ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElem
 				parsedMessage,
 				error,
 			};
-			log("msg in cb", unpackedMessage);
 			setMessages(prevMessages => [...prevMessages, unpackedMessage]);
 		});
 	}, []);
@@ -159,8 +161,9 @@ export default function ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElem
 						const row = rows[virtualRow.index];
 						return (
 							<tr
+								onClick={() => onItemSelected(row.original)}
 								key={row.id}
-								className={`${row.original.error ? "has-error" : ""} ${virtualRow.index % 2 ? 'is-even' : 'is-odd'}`}
+								className={`${row.original.error ? "has-error" : ""} ${selectedMessage === row.original ? 'is-selected' : (virtualRow.index % 2 ? 'is-even' : 'is-odd')}`}
 								style={{
 									height: `${virtualRow.size}px`,
 									transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
@@ -171,7 +174,8 @@ export default function ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElem
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
-							</tr>);
+							</tr>
+						);
 					})}
 				</tbody>
 			</table>

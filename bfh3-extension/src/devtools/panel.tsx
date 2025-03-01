@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import MessageTest from './components/messageTest';
-import { StrictMode, useRef } from 'react';
+import { StrictMode } from 'react';
+import MessageListWithSidePanel from './components/MessageListWithSidePanel';
 
 const rootNode = document.getElementById('root');
 if (!rootNode) throw "no root node found";
@@ -9,15 +9,13 @@ if (!rootNode) throw "no root node found";
 const root = createRoot(rootNode);
 
 const App = () => {
-	const scrollRef = useRef<HTMLDivElement>(null);
-
 	return (
 		<div style={{ height: '100vh' }}>
-			<div style={{ height: "48px" }}>
+			<div style={{ height: '48px', padding: '4px' }}>
 				Hello devtools!
 			</div>
-			<div ref={scrollRef} style={{ height: 'calc(100% - 48px)', overflow: 'auto', }}>
-				<MessageTest scrollRef={scrollRef}></MessageTest>
+			<div style={{ height: 'calc(100% - 48px)', overflow: 'auto', }}>
+				<MessageListWithSidePanel />
 			</div>
 		</div>
 	);
@@ -26,4 +24,5 @@ const App = () => {
 root.render((
 	<StrictMode>
 		<App></App>
-	</StrictMode>));
+	</StrictMode>
+));
