@@ -1,7 +1,8 @@
-export const log = function (...data: any) {
+export const log = function (...data: unknown[]) {
 	console.log("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
-export const logError = function (...data: any) {
+
+export const logError = function (...data: unknown[]) {
 	console.error("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
 

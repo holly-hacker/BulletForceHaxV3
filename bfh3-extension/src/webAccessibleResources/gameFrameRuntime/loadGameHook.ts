@@ -32,7 +32,7 @@ interface Unity2020Config {
 	},
 	oldSdkInitObject: {
 		gameLink: string,
-		userInfo: any, // not relevant
+		userInfo: unknown,
 	},
 	unityConfig: {
 		companyName: string,
@@ -44,7 +44,7 @@ interface Unity2020Config {
 		frameworkUrl: string,
 		streamingAssetsUrl: string,
 	},
-	unitySaveFileNames: any, // unknown
+	unitySaveFileNames: unknown,
 }
 
 export default function () {
@@ -54,7 +54,7 @@ export default function () {
 			return;
 		}
 
-		let unityConfig = window.config as Unity2020Config; // type system is not smart enough to recognize this
+		const unityConfig = window.config as Unity2020Config; // type system is not smart enough to recognize this
 
 		// get the patched loader, put it in the loader object and call the original loadGame function
 		// this function should have been updated to load the `src` function

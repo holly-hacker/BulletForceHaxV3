@@ -2,6 +2,7 @@
 // be a 50/50 race condition.
 setTimeout(() => {
 	try {
+		// eslint-disable-next-line no-undef
 		wasm_bindgen();
 	} catch (e) {
 		console.error("failed to load bfh wasm bundle:",e);

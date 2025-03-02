@@ -1,7 +1,7 @@
 import * as React from "react";
 import { UnpackedDevtoolsMessage } from "./MessageList";
 
-export default ({ selectedMessage, onClose }: { selectedMessage: UnpackedDevtoolsMessage, onClose: () => void }) => {
+export default function SidePanel({ selectedMessage, onClose }: { selectedMessage: UnpackedDevtoolsMessage, onClose: () => void }) {
 	return <div>
 		<button onClick={onClose}>Close</button>
 

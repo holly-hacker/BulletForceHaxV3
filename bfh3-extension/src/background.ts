@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(onMessage);
 chrome.runtime.onMessageExternal.addListener(onMessage);
 
 // TODO: pass if external message or not. may be security issue.
-function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
 	switch (request.type) {
 		case GET_PATCHED_FILE: {
 			log(`incoming patched file request from ${sender.url}`, request);
@@ -52,7 +52,7 @@ function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, se
 }
 
 async function handleGetPatchedFile(request: GetPatchedFileRequest): Promise<GetPatchedFileResponse> {
-	let bytes = await fetchOrGetCached(request.url);
+	const bytes = await fetchOrGetCached(request.url);
 	log("Fetched", request.url);
 
 	let js = new TextDecoder().decode(bytes);

@@ -23,7 +23,7 @@ onDomLoaded(() => {
 	document.body.append(wasmInitScriptNode);
 });
 
-var mo = new MutationObserver((mutationList, observer) => {
+const mo = new MutationObserver((mutationList, observer) => {
 	for (const record of mutationList) {
 		if (record.type !== "childList") continue;
 
@@ -42,7 +42,7 @@ var mo = new MutationObserver((mutationList, observer) => {
 			}
 
 			// we need to pass in the extension id so chrome.runtime.sendMessage knows which extension to contact
-			let extensionId = chrome.runtime.id;
+			const extensionId = chrome.runtime.id;
 			log("patching loadGame call to loadGameHook with extension id", extensionId);
 			scriptNode.textContent = scriptNode.textContent.replace("window.loadGame()", `window.loadGameHook('${extensionId}')`);
 

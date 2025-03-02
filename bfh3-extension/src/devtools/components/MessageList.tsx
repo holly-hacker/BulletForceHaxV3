@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { AnyRequest, DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
-import { createColumnHelper, flexRender, getCoreRowModel, RowModel, Table, useReactTable } from "@tanstack/react-table";
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MessageTypeString } from "../../util";
 
@@ -15,9 +15,9 @@ export interface UnpackedDevtoolsMessage {
 	/** The type of the message */
 	messageType: MessageTypeString | null;
 	/** The raw message */
-	message?: Object;
+	message?: object;
 	/** The high-level message (if any) */
-	parsedMessage?: Object;
+	parsedMessage?: object;
 	/** The parsing error, if any occurred */
 	error?: string;
 }
@@ -25,16 +25,18 @@ export interface UnpackedDevtoolsMessage {
 function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
 	chrome.runtime.onMessage.addListener(onMessage);
 
-	function onMessage(request: AnyRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+	function onMessage(request: AnyRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
 		// log(`incoming request from ${sender.url}`, request);
 
 		switch (request.type) {
 			case SEND_DEVTOOLS_MESSAGE: {
 				cb(request.data);
 				sendResponse(undefined);
+				break;
 			}
 			default: {
 				sendResponse(undefined);
+				break;
 			}
 		}
 	}
@@ -68,24 +70,7 @@ const columns = [
 	}),
 ];
 
-function messageTypeNumToString(num: number): string {
-	switch (num) {
-		case 0: return 'Init';
-		case 1: return 'InitResponse';
-		case 2: return 'OperationRequest';
-		case 3: return 'OperationResponse';
-		case 4: return 'Event';
-		case 5: return 'Disconnect';
-		case 6: return 'InternalOperationRequest';
-		case 7: return 'InternalOperationResponse';
-		case 8: return 'Message';
-		case 9: return 'RawMessage';
-		case 10: return 'PingResult';
-		default: return '<unknown>';
-	}
-}
-
-function getParsedName(message: UnpackedDevtoolsMessage): String | null {
+function getParsedName(message: UnpackedDevtoolsMessage): string | null {
 	// don't do anything for init and initresponse
 	if (!message.messageType) return '';
 	if (['Init', 'InitResponse'].includes(message.messageType)) return '';
@@ -99,22 +84,22 @@ function getParsedName(message: UnpackedDevtoolsMessage): String | null {
 	return keys[0] ? keys[0] : null;
 }
 
-export default function ({ scrollRef, selectedMessage, onItemSelected }: {
+export default function MessageList({ scrollRef, selectedMessage, onItemSelected }: {
 	scrollRef: React.RefObject<HTMLDivElement | null>,
 	selectedMessage: UnpackedDevtoolsMessage | null,
 	onItemSelected: (a: UnpackedDevtoolsMessage) => void,
 }) {
-	let [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
+	const [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
 
 	useEffect(() => {
 		return registerMessageHandler((msg) => {
 			let message, parsedMessage, error;
 			try {
-				message = Msgpack.decode(Base64.toByteArray(msg.message)) as Object;
-				parsedMessage = msg.parsedMessage ? Msgpack.decode(Base64.toByteArray(msg.parsedMessage)) as Object : undefined;
+				message = Msgpack.decode(Base64.toByteArray(msg.message)) as object;
+				parsedMessage = msg.parsedMessage ? Msgpack.decode(Base64.toByteArray(msg.parsedMessage)) as object : undefined;
 				error = msg.error;
 			} catch (e) {
-				error = (e as any).toString();
+				error = e && e.toString ? e.toString() : undefined;
 			}
 			const unpackedMessage: UnpackedDevtoolsMessage = {
 				direction: msg.direction,

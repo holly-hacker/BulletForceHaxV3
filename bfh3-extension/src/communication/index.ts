@@ -23,7 +23,7 @@ async function getPatchedFile(request: GetPatchedFileRequest, extensionId?: stri
 	return await chromeRuntimeSend(
 		{ type: GET_PATCHED_FILE, data: request },
 		extensionId
-	);
+	) as GetPatchedFileResponse;
 }
 
 interface DevtoolsMessage {
@@ -43,13 +43,13 @@ interface DevtoolsMessage {
 }
 
 async function sendDevtoolsMessage(request: DevtoolsMessage, extensionId?: string): Promise<void> {
-	return await chromeRuntimeSend(
+	await chromeRuntimeSend(
 		{ type: SEND_DEVTOOLS_MESSAGE, data: request },
 		extensionId
 	);
 }
 
-function chromeRuntimeSend(request: AnyRequest, extensionId: string | undefined): Promise<any> {
+function chromeRuntimeSend(request: AnyRequest, extensionId: string | undefined): Promise<unknown> {
 	return new Promise((resolve, reject) => {
 		try {
 			chrome.runtime.sendMessage(extensionId, request, response => resolve(response));

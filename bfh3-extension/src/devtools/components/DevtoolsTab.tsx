@@ -2,7 +2,7 @@ import * as React from "react";
 import TopPanel from "./TopPanel";
 import MessageListWithSidePanel from "./MessageListWithSidePanel";
 
-export default () => {
+export default function DevtoolsTab() {
 	const topTabHeight = 48;
 
 	return (

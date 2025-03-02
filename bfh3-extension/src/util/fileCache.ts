@@ -34,7 +34,7 @@ async function fetchOrGetCached(url: string): Promise<Uint8Array> {
 	log("response size", buffer.byteLength);
 	const bufferBase64 = Base64.fromByteArray(buffer);
 
-	let toStore: StoreType = {};
+	const toStore: StoreType = {};
 	toStore[fileKey] = {
 		url: url,
 		etag: etag,

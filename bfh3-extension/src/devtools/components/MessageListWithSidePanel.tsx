@@ -3,7 +3,7 @@ import MessageList, { UnpackedDevtoolsMessage } from "./MessageList";
 import { useRef, useState } from "react";
 import SidePanel from "./SidePanel";
 
-export default function (): React.JSX.Element {
+export default function MessageListWithSidePanel(): React.JSX.Element {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [selectedMessage, setMessage] = useState<UnpackedDevtoolsMessage | null>(null);
 
