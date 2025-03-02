@@ -5,6 +5,7 @@ import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, RowModel, Table, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { MessageTypeString } from "../../util";
 
 export interface UnpackedDevtoolsMessage {
 	/** The direction the packet was going */
@@ -12,7 +13,7 @@ export interface UnpackedDevtoolsMessage {
 	/** Which server the socket is connected to */
 	socketType: "lobby" | "game";
 	/** The type of the message */
-	messageType: number;
+	messageType: MessageTypeString | null;
 	/** The raw message */
 	message?: Object;
 	/** The high-level message (if any) */
@@ -55,7 +56,7 @@ const columns = [
 	}),
 	columnHelper.accessor('messageType', {
 		header: 'Message Type',
-		cell: info => messageTypeNumToString(info.getValue()),
+		cell: info => info.getValue(),
 	}),
 	columnHelper.display({
 		id: 'parsedName',
@@ -86,7 +87,8 @@ function messageTypeNumToString(num: number): string {
 
 function getParsedName(message: UnpackedDevtoolsMessage): String | null {
 	// don't do anything for init and initresponse
-	if ([0, 1].includes(message.messageType)) return '';
+	if (!message.messageType) return '';
+	if (['Init', 'InitResponse'].includes(message.messageType)) return '';
 
 	if (!message.parsedMessage) return null;
 

@@ -1,3 +1,5 @@
+import { MessageTypeString } from "../util";
+
 const GET_PATCHED_FILE = 'GetPatchedFile';
 const SEND_DEVTOOLS_MESSAGE = 'SendDevtoolsMessage';
 
@@ -30,7 +32,7 @@ interface DevtoolsMessage {
 	/** Which server the socket is connected to */
 	socketType: "lobby" | "game";
 	/** The type of the message */
-	messageType: number;
+	messageType: MessageTypeString | null;
 	/** The raw message, encoded as MessagePack */
 	message: string;
 	/** The high-level message (if any), encoded as MessagePack */

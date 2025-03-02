@@ -1,11 +1,11 @@
-const log = function (...data: any) {
+export const log = function (...data: any) {
 	console.log("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
-const logError = function (...data: any) {
+export const logError = function (...data: any) {
 	console.error("%c[BulletForceHaxV3]%c", "color: hotpink", "color: initial", ...data);
 };
 
-function onDomLoaded(callback: () => void) {
+export function onDomLoaded(callback: () => void) {
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', function () {
 			callback();
@@ -15,4 +15,32 @@ function onDomLoaded(callback: () => void) {
 	}
 }
 
-export { log, logError, onDomLoaded };
+export type MessageTypeString =
+	| 'Init'
+	| 'InitResponse'
+	| 'OperationRequest'
+	| 'OperationResponse'
+	| 'Event'
+	| 'Disconnect'
+	| 'InternalOperationRequest'
+	| 'InternalOperationResponse'
+	| 'Message'
+	| 'RawMessage'
+	| 'PingResult';
+
+export function messageTypeNumToString(num: number): MessageTypeString  | null{
+	switch (num) {
+		case 0: return 'Init';
+		case 1: return 'InitResponse';
+		case 2: return 'OperationRequest';
+		case 3: return 'OperationResponse';
+		case 4: return 'Event';
+		case 5: return 'Disconnect';
+		case 6: return 'InternalOperationRequest';
+		case 7: return 'InternalOperationResponse';
+		case 8: return 'Message';
+		case 9: return 'RawMessage';
+		case 10: return 'PingResult';
+		default: return null;
+	}
+}
