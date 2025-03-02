@@ -8,6 +8,7 @@
         "watch": "webpack --mode=development --watch --config webpack.config.js",
         "build-dev": "webpack --mode=development --config webpack.config.js",
         "build": "webpack --mode=production --config webpack.config.js",
+        "check": "eslint && webpack --mode=development --config webpack.config.js --fail-on-warnings --stats errors-warnings",
         "format": "prettier --write --ignore-unknown \"{config,public,src}/**/*.{html,css,js,ts,json}\""
     },
     "devDependencies": {
