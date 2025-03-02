@@ -1,3 +1,8 @@
+// typescript acts a bit buggy here
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 'use strict';
 
 import path from 'path';

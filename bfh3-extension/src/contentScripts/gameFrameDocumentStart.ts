@@ -58,18 +58,18 @@ mo.observe(document.getRootNode(), {
 });
 
 // install some event listener to get messages to dispatch onwards
-window.addEventListener('message', async (event) => {
+window.addEventListener('message', (...args) => { onMessage(...args).catch(logError); });
+
+async function onMessage(event: MessageEvent<unknown>) {
 	// Only accept messages from the same frame, not from the parent
 	if (event.source !== window) return;
 
 	const data = event.data;
 
-	if (typeof data !== 'object') return;
-
-	if (data?.message) {
+	if (data && typeof data === 'object' && 'message' in data) {
 		// probably devtools message. could be a better check.
 		const msg = data as DevtoolsMessage;
 
 		await sendDevtoolsMessage(msg);
 	}
-});
+}

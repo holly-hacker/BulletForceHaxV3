@@ -1,4 +1,6 @@
 {
+    "include": ["**/*.js", "**/*.ts", "**/*.tsx"],
+    "exclude": [ "build/*", "bfh3-browser-implant/*" ],
     "compilerOptions": {
         "outDir": "./build/",
         "sourceMap": true,
@@ -6,7 +8,7 @@
         "module": "es6",
         "target": "es2015",
         "jsx": "react",
-        "allowJs": false,
+        "allowJs": true, // should be enabled for `*.config.js` files
         "strict": true,
         "moduleResolution": "node"
     }

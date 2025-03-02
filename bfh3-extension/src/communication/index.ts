@@ -1,4 +1,4 @@
-import { MessageTypeString } from "../util";
+import { MessageTypeString, toError } from "../util";
 
 const GET_PATCHED_FILE = 'GetPatchedFile';
 const SEND_DEVTOOLS_MESSAGE = 'SendDevtoolsMessage';
@@ -6,6 +6,15 @@ const SEND_DEVTOOLS_MESSAGE = 'SendDevtoolsMessage';
 type AnyRequest =
 	| { type: typeof GET_PATCHED_FILE, data: GetPatchedFileRequest }
 	| { type: typeof SEND_DEVTOOLS_MESSAGE, data: DevtoolsMessage };
+
+
+function isAnyRequest(message: unknown): message is AnyRequest {
+	if (!(message && typeof message === 'object')) return false;
+	if (!('type' in message) || typeof message.type !== 'string') return false;
+	if (!('data' in message)) return false;
+
+	return true;
+}
 
 interface GetPatchedFileRequest {
 	url: string;
@@ -54,13 +63,13 @@ function chromeRuntimeSend(request: AnyRequest, extensionId: string | undefined)
 		try {
 			chrome.runtime.sendMessage(extensionId, request, response => resolve(response));
 		} catch (e) {
-			reject(e);
+			reject(toError(e))
 		}
 	});
 }
 
 export {
-	AnyRequest,
+	AnyRequest, isAnyRequest,
 	getPatchedFile, GET_PATCHED_FILE, GetPatchedFileRequest, GetPatchedFileResponse,
 	sendDevtoolsMessage, SEND_DEVTOOLS_MESSAGE, DevtoolsMessage,
 }

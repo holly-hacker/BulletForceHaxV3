@@ -7,7 +7,7 @@ declare global {
 		/** The original loadGame function */
 		loadGame: () => void;
 		/** The loadGame hook function created in this script */
-		loadGameHook?: (extensionId: string) => void;
+		loadGameHook?: (extensionId: string) => void | Promise<void>;
 		/** The unity config object */
 		config: UnityConfig | Unity2020Config;
 	}

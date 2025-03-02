@@ -3,9 +3,11 @@
 setTimeout(() => {
 	try {
 		// eslint-disable-next-line no-undef
-		wasm_bindgen();
+		wasm_bindgen()
+			.catch(r => alert("wasm_bindgen call failed: " + r));
 	} catch (e) {
-		console.error("failed to load bfh wasm bundle:",e);
+		console.error("failed to load bfh wasm bundle:", e);
+		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 		alert("failed to load bfh wasm bundle: " + e);
 	}
 }, 100);

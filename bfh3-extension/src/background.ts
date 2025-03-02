@@ -1,13 +1,15 @@
 'use strict';
 
-import { GetPatchedFileRequest, GetPatchedFileResponse, AnyRequest, GET_PATCHED_FILE } from "./communication";
+import { GetPatchedFileRequest, GetPatchedFileResponse, GET_PATCHED_FILE, isAnyRequest } from "./communication";
 import { log, logError } from "./util";
 import { fetchOrGetCached } from "./util/fileCache";
 
 log('background service started');
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(logError);
-chrome.tabs.onUpdated.addListener(async (tabId, _info, tab) => {
+chrome.tabs.onUpdated.addListener((...args) => { onTabUpdated(...args).catch(logError); });
+
+async function onTabUpdated(tabId: number, _info: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) {
 	if (!tab.url) return;
 	const url = new URL(tab.url);
 
@@ -32,21 +34,25 @@ chrome.tabs.onUpdated.addListener(async (tabId, _info, tab) => {
 			enabled: false,
 		});
 	}
-});
+}
 
-chrome.runtime.onMessage.addListener(onMessage);
-chrome.runtime.onMessageExternal.addListener(onMessage);
+chrome.runtime.onMessage.addListener((...args) => { onMessage(...args).catch(logError); });
+chrome.runtime.onMessageExternal.addListener((...args) => { onMessage(...args).catch(logError); });
 
 // TODO: pass if external message or not. may be security issue.
-function onMessage(request: AnyRequest, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
+async function onMessage(request: unknown, sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
+	if (!isAnyRequest(request)) return;
+
 	switch (request.type) {
 		case GET_PATCHED_FILE: {
 			log(`incoming patched file request from ${sender.url}`, request);
-			handleGetPatchedFile(request.data).then(sendResponse);
+			const response = await handleGetPatchedFile(request.data);
+			sendResponse(response);
 			return true; // true means sending a response later
 		}
 		default: {
 			sendResponse(undefined);
+			return;
 		}
 	}
 }

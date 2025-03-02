@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { AnyRequest, DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication";
+import { DevtoolsMessage, isAnyRequest, SEND_DEVTOOLS_MESSAGE } from "../../communication";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
@@ -25,7 +25,8 @@ export interface UnpackedDevtoolsMessage {
 function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
 	chrome.runtime.onMessage.addListener(onMessage);
 
-	function onMessage(request: AnyRequest, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
+	function onMessage(request: unknown, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
+		if (!isAnyRequest(request)) return;
 		// log(`incoming request from ${sender.url}`, request);
 
 		switch (request.type) {
@@ -78,7 +79,7 @@ function getParsedName(message: UnpackedDevtoolsMessage): string | null {
 	if (!message.parsedMessage) return null;
 
 	// OperationResponse contains an array as top-level, with first item being the actual parsed message
-	const toCheck = Array.isArray(message.parsedMessage) ? message.parsedMessage[0] : message.parsedMessage;
+	const toCheck = Array.isArray(message.parsedMessage) ? message.parsedMessage[0] as object : message.parsedMessage;
 
 	const keys = Object.keys(toCheck);
 	return keys[0] ? keys[0] : null;
@@ -99,7 +100,14 @@ export default function MessageList({ scrollRef, selectedMessage, onItemSelected
 				parsedMessage = msg.parsedMessage ? Msgpack.decode(Base64.toByteArray(msg.parsedMessage)) as object : undefined;
 				error = msg.error;
 			} catch (e) {
-				error = e && e.toString ? e.toString() : undefined;
+				if (!e)
+					error = undefined;
+				else if (e instanceof Error)
+					error = e.name;
+				else if (typeof e === 'string')
+					error = e;
+				else
+					error = JSON.stringify(e);
 			}
 			const unpackedMessage: UnpackedDevtoolsMessage = {
 				direction: msg.direction,

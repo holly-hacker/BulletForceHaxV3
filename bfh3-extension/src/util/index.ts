@@ -16,6 +16,15 @@ export function onDomLoaded(callback: () => void) {
 	}
 }
 
+export function toError(e: unknown): Error {
+	if (e instanceof Error)
+		return e;
+	if (typeof (e) === 'string')
+		return Error(e);
+
+	return Error(JSON.stringify(e));
+}
+
 export type MessageTypeString =
 	| 'Init'
 	| 'InitResponse'
@@ -29,7 +38,7 @@ export type MessageTypeString =
 	| 'RawMessage'
 	| 'PingResult';
 
-export function messageTypeNumToString(num: number): MessageTypeString  | null{
+export function messageTypeNumToString(num: number): MessageTypeString | null {
 	switch (num) {
 		case 0: return 'Init';
 		case 1: return 'InitResponse';

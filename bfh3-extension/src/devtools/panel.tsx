@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import DevtoolsTab from './components/DevtoolsTab';
 
 const rootNode = document.getElementById('root');
-if (!rootNode) throw "no root node found";
+if (!rootNode) throw Error("no root node found");
 
 const root = createRoot(rootNode);
 
