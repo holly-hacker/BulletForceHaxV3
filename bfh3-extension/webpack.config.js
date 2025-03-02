@@ -1,13 +1,13 @@
 'use strict';
 
-const path = require('path');
+import path from 'path';
 
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import WasmPackPlugin from '@wasm-tool/wasm-pack-plugin';
 
 const PATHS = {
-	src: path.resolve(__dirname, 'src'),
-	build: path.resolve(__dirname, 'build'),
+	src: path.resolve(import.meta.dirname, 'src'),
+	build: path.resolve(import.meta.dirname, 'build'),
 };
 
 // Merge webpack configuration files
@@ -53,7 +53,7 @@ const config = (_env, argv) => ({
 
 		// Build the rust project
 		new WasmPackPlugin({
-			crateDirectory: path.resolve(__dirname, '../bfh3-browser-implant'),
+			crateDirectory: path.resolve(import.meta.dirname, '../bfh3-browser-implant'),
 			extraArgs: '--target no-modules --no-pack',
 			outDir: '../bfh3-extension/bfh3-browser-implant'
 		}),
@@ -74,4 +74,4 @@ const config = (_env, argv) => ({
 	}
 });
 
-module.exports = config;
+export default config;
