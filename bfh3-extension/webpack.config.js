@@ -10,6 +10,7 @@ import path from 'path';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import WasmPackPlugin from '@wasm-tool/wasm-pack-plugin';
 
+/** @type {{src: string, build: string}} */
 const PATHS = {
 	src: path.resolve(import.meta.dirname, 'src'),
 	build: path.resolve(import.meta.dirname, 'build'),

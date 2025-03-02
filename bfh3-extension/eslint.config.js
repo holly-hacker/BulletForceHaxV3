@@ -14,7 +14,7 @@ export default [
 	{ ignores: [ "build/*", "bfh3-browser-implant/*", ] },
 	{ languageOptions: { globals: globals.browser } },
 	pluginJs.configs.recommended,
-	...tseslint.configs.recommendedTypeChecked,
+	...tseslint.configs.strictTypeChecked,
 	pluginReact.configs.flat.recommended,
 	pluginReactHooks.configs["recommended-latest"],
 	{
@@ -38,6 +38,15 @@ export default [
 				// ignore anything starting with `_`
 				"argsIgnorePattern": "^_",
 				"varsIgnorePattern": "^_",
+			}],
+
+			// strict rules
+			"@typescript-eslint/no-confusing-void-expression": ["error", {
+				ignoreArrowShorthand: true,
+			}],
+			"@typescript-eslint/restrict-template-expressions": ["error", {
+				allowNumber: true,
+				allowBoolean: true,
 			}],
 		},
 	}

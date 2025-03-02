@@ -2,7 +2,7 @@ import { log } from ".";
 import * as Base64 from "base64-js";
 
 async function fetchOrGetCached(url: string): Promise<Uint8Array> {
-	type StoreType = { [key: string]: CachedFile };
+	type StoreType = { [key: string]: CachedFile | undefined };
 
 	const fileKey = `file-${url}`;
 	const storageResult = await chrome.storage.local.get<StoreType>([fileKey]);

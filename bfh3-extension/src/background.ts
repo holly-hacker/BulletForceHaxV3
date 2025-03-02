@@ -45,7 +45,7 @@ async function onMessage(request: unknown, sender: chrome.runtime.MessageSender,
 
 	switch (request.type) {
 		case GET_PATCHED_FILE: {
-			log(`incoming patched file request from ${sender.url}`, request);
+			log(`incoming patched file request from ${sender.url ?? 'unknown url'}`, request);
 			const response = await handleGetPatchedFile(request.data);
 			sendResponse(response);
 			return true; // true means sending a response later
@@ -64,6 +64,7 @@ async function handleGetPatchedFile(request: GetPatchedFileRequest): Promise<Get
 	let js = new TextDecoder().decode(bytes);
 
 	switch (request.role) {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- may be expanded in the future
 		case 'FRAMEWORK': {
 			log("patching framework");
 
