@@ -25,7 +25,7 @@ BulletForceHaxv3 (BFHv3) is the third iteration of my attempt at writing tooling
 
 These are some high-level goals that were conceived of near the start of development, take them with a grain of salt.
 
-- [ ] Build out a high quality nwetworking library that could be published on its own
+- [ ] Build out a high quality networking library that could be published on its own
 - [ ] Create a decent packet sniffer, likely as a chrome DevTools page
 - [ ] Create a headless bot, possibly scriptable
-- [ ] Create some basic cheats that could be controller from within the browser
+- [ ] Create some basic cheats that could be controlled from within the browser

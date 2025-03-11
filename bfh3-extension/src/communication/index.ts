@@ -7,10 +7,9 @@ type AnyRequest =
 	| { type: typeof GET_PATCHED_FILE, data: GetPatchedFileRequest }
 	| { type: typeof SEND_DEVTOOLS_MESSAGE, data: DevtoolsMessage };
 
-
 function isAnyRequest(message: unknown): message is AnyRequest {
 	if (!(message && typeof message === 'object')) return false;
-	if (!('type' in message) || typeof message.type !== 'string') return false;
+	if (!('type' in message && typeof message.type === 'string')) return false;
 	if (!('data' in message)) return false;
 
 	return true;
@@ -48,7 +47,6 @@ interface DevtoolsMessage {
 	parsedMessage?: string;
 	/** The parsing error, if any occurred */
 	error?: string;
-
 }
 
 async function sendDevtoolsMessage(request: DevtoolsMessage, extensionId?: string): Promise<void> {
