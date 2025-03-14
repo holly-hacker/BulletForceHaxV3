@@ -1,6 +1,7 @@
 'use strict';
 
-import { GetPatchedFileRequest, GetPatchedFileResponse, GET_PATCHED_FILE, isAnyRequest } from "./communication";
+import { isAnyRequest } from "./communication";
+import { GET_PATCHED_FILE, GetPatchedFileRequest, GetPatchedFileResponse } from "./communication/to_background";
 import { log, logError } from "./util";
 import { fetchOrGetCached } from "./util/fileCache";
 

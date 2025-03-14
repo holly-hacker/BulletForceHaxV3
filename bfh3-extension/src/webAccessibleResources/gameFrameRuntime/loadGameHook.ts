@@ -1,4 +1,4 @@
-import { getPatchedFile } from "../../communication";
+import { getPatchedFile } from "../../communication/to_background";
 import { log, logError } from "../../util";
 
 // can't put these in a `.d.ts` file?

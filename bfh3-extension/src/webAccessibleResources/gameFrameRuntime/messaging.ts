@@ -1,8 +1,8 @@
 /// <reference types="../../../bfh3-browser-implant/index" />
 
-import { DevtoolsMessage } from "../../communication";
 import * as Base64 from "base64-js";
 import { messageTypeNumToString } from "../../util";
+import { DevtoolsMessage } from "../../communication/to_devtools";
 
 declare global {
 	interface Window {

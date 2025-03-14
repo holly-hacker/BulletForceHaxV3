@@ -5,6 +5,8 @@ use photon_lib::{photon::message::PhotonMessage, pun::lifting::RoomInfoList};
 
 use crate::networking::{PacketAction, PacketDirection, SocketType};
 
+pub use devtools::DevtoolsMessage;
+
 pub const ALL_FEATURES: [&dyn Feature; 3] = [
     &DummyFeature,
     &devtools::DevtoolsFeature,

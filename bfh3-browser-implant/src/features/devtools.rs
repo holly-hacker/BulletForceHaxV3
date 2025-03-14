@@ -5,11 +5,31 @@ use photon_lib::{
         ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _,
     },
 };
+use wasm_bindgen::prelude::*;
 
 use crate::{
-    DevtoolsMessage,
+    bindgen::send_message_to_devtools,
     networking::{PacketAction, PacketDirection, SocketType},
 };
+
+#[wasm_bindgen]
+pub struct DevtoolsMessage {
+    /// The direction the packet was going
+    pub direction: PacketDirection,
+    /// Which server the socket is connected to
+    pub socket_type: SocketType,
+    /// The type of the message
+    pub message_type: u8,
+    /// The raw message, encoded as MessagePack
+    #[wasm_bindgen(getter_with_clone)]
+    pub message: Vec<u8>,
+    /// The high-level message (if any), encoded as MessagePack
+    #[wasm_bindgen(getter_with_clone)]
+    pub parsed_message: Option<Vec<u8>>,
+    /// The parsing error, if any occurred
+    #[wasm_bindgen(getter_with_clone)]
+    pub error: Option<String>,
+}
 
 pub struct DevtoolsFeature;
 
@@ -98,7 +118,7 @@ impl super::Feature for DevtoolsFeature {
             error,
         };
 
-        crate::send_message_to_devtools(devtools_message);
+        send_message_to_devtools(devtools_message);
 
         Ok(PacketAction::Ignore)
     }

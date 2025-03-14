@@ -1,6 +1,6 @@
 'use strict';
 
-import { DevtoolsMessage, sendDevtoolsMessage } from "../communication";
+import { DevtoolsMessage, sendDevtoolsMessage } from "../communication/to_devtools";
 import { log, logError, onDomLoaded } from "../util";
 
 log("Running game frame document_start script");

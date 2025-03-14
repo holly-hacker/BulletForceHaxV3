@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { DevtoolsMessage, isAnyRequest, SEND_DEVTOOLS_MESSAGE } from "../../communication";
+import { isAnyRequest } from "../../communication";
 import * as Msgpack from "@msgpack/msgpack";
 import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MessageTypeString } from "../../util";
+import { DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication/to_devtools";
 
 export interface UnpackedDevtoolsMessage {
 	/** The direction the packet was going */
