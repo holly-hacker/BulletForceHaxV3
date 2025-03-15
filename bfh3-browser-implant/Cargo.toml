@@ -8,6 +8,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 anyhow = "1.0.95"
+bfh3-browser-implant-macros = { path = "../bfh3-browser-implant-macros" }
 console_error_panic_hook = "0.1.7"
 photon_lib = { path = "../photon_lib" }
 rmp-serde = "1.3.0"

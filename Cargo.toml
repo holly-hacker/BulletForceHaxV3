@@ -3,4 +3,5 @@ resolver = "3"
 members = [
     "photon_lib",
     "bfh3-browser-implant",
+    "bfh3-browser-implant-macros",
 ]
