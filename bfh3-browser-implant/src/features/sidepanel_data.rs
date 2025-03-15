@@ -74,12 +74,12 @@ impl Feature for SidepanelData {
     }
 
     fn on_socket_close(&self, socket_type: SocketType) -> anyhow::Result<()> {
-        let current_data = DATA.lock().unwrap();
+        let mut current_data = DATA.lock().unwrap();
 
         match (current_data.as_ref(), socket_type) {
             (Some(EitherData::Lobby(_)), SocketType::Lobby)
             | (Some(EitherData::Game(_)), SocketType::Game) => {
-                *DATA.lock().unwrap() = None;
+                *current_data = None;
             }
             (Some(_), _) => {
                 // we already have data, but it's a different type
