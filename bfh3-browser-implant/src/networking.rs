@@ -2,7 +2,6 @@ use std::convert::TryInto;
 
 use anyhow::Context;
 use photon_lib::{
-    // parsing::event::ParseEventExt,
     photon::message::{DisconnectMessage, OperationRequest, OperationResponse, PhotonMessage},
     pun::lifting::{
         ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _, PunEvent,
@@ -10,7 +9,80 @@ use photon_lib::{
 };
 use tracing::{error, trace, warn};
 
-use crate::features::ALL_FEATURES;
+use crate::{features::ALL_FEATURES, utils::MultiError};
+
+// not super logical that this happens here, but it keeps everything together
+pub fn handle_tick() -> Result<(), MultiError> {
+    let errors = ALL_FEATURES.iter().fold(vec![], |mut errors, feat| {
+        if let Err(err) = feat
+            .on_tick()
+            .with_context(|| format!("run for feat: {}", feat.get_name()))
+        {
+            errors.push(err);
+        }
+        errors
+    });
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(MultiError(errors))
+    }
+}
+
+pub fn handle_ws_open(url: &str) -> Result<(), MultiError> {
+    trace!(url, "extracting port from url");
+    let port_str = url.split(':').last().unwrap().split('/').next().unwrap();
+
+    let socket_type: SocketType = port_str
+        .parse::<u16>()
+        .context("parse port as u16")?
+        .try_into()
+        .map_err(|e| anyhow::anyhow!("convert port to socket type: {e}"))?;
+
+    let errors = ALL_FEATURES.iter().fold(vec![], |mut errors, feat| {
+        if let Err(err) = feat
+            .on_socket_open(socket_type)
+            .with_context(|| format!("run for feat: {}", feat.get_name()))
+        {
+            errors.push(err);
+        }
+        errors
+    });
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(MultiError(errors))
+    }
+}
+
+pub fn handle_ws_close(url: &str) -> Result<(), MultiError> {
+    trace!(url, "extracting port from url");
+    let port_str = url.split(':').last().unwrap().split('/').next().unwrap();
+
+    let socket_type: SocketType = port_str
+        .parse::<u16>()
+        .context("parse port as u16")?
+        .try_into()
+        .map_err(|e| anyhow::anyhow!("convert port to socket type: {e}"))?;
+
+    let errors = ALL_FEATURES.iter().fold(vec![], |mut errors, feat| {
+        if let Err(err) = feat
+            .on_socket_close(socket_type)
+            .with_context(|| format!("run for feat: {}", feat.get_name()))
+        {
+            errors.push(err);
+        }
+        errors
+    });
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(MultiError(errors))
+    }
+}
 
 pub fn handle_packet_send(buffer: &[u8], url: &str) -> anyhow::Result<PacketAction<Vec<u8>>> {
     // get port from url

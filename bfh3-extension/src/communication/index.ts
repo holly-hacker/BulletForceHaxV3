@@ -1,10 +1,12 @@
 import { toError } from "../util";
 import { GET_PATCHED_FILE, GetPatchedFileRequest } from "./to_background";
 import { DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "./to_devtools";
+import { LobbyOrGameData, SEND_LOBBY_OR_GAME_DATA } from "./to_sidepanel";
 
 export type AnyRequest =
 	| { type: typeof GET_PATCHED_FILE, data: GetPatchedFileRequest }
-	| { type: typeof SEND_DEVTOOLS_MESSAGE, data: DevtoolsMessage };
+	| { type: typeof SEND_DEVTOOLS_MESSAGE, data: DevtoolsMessage }
+	| { type: typeof SEND_LOBBY_OR_GAME_DATA, data: LobbyOrGameData };
 
 export function isAnyRequest(message: unknown): message is AnyRequest {
 	if (!(message && typeof message === 'object')) return false;

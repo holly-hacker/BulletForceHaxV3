@@ -25,8 +25,36 @@ fn start() {
 }
 
 #[wasm_bindgen]
+pub async fn tick() {
+    trace!("tick");
+    match networking::handle_tick() {
+        Ok(()) => (),
+        Err(err) => {
+            error!("Error handling tick: {err:?}");
+        }
+    }
+}
+
+#[wasm_bindgen]
 pub fn on_ws_open(url: &str) {
     info!(url, "Connection opened");
+    match networking::handle_ws_open(url) {
+        Ok(()) => (),
+        Err(err) => {
+            error!(url, "Error handling sent ws open: {err:?}");
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub fn on_ws_close(url: &str) {
+    info!(url, "Connection closed");
+    match networking::handle_ws_close(url) {
+        Ok(()) => (),
+        Err(err) => {
+            error!(url, "Error handling sent ws close: {err:?}");
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -63,9 +91,4 @@ pub async fn on_ws_recv(message: Vec<u8>, origin: &str) -> Option<Vec<u8>> {
         PacketAction::Drop => None,
         PacketAction::Modify(new_message) => Some(new_message),
     }
-}
-
-#[wasm_bindgen]
-pub fn on_ws_close(url: &str) {
-    info!(url, "Connection closed");
 }

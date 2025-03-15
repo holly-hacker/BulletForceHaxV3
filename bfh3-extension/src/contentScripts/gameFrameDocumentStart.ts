@@ -1,6 +1,7 @@
 'use strict';
 
 import { DevtoolsMessage, sendDevtoolsMessage } from "../communication/to_devtools";
+import { LobbyOrGameData, sendLobbyOrGameData } from "../communication/to_sidepanel";
 import { log, logError, onDomLoaded } from "../util";
 
 log("Running game frame document_start script");
@@ -66,10 +67,16 @@ async function onMessage(event: MessageEvent<unknown>) {
 
 	const data = event.data;
 
-	if (data && typeof data === 'object' && 'message' in data) {
-		// probably devtools message. could be a better check.
-		const msg = data as DevtoolsMessage;
+	if (data && typeof data === 'object') {
+		if ('message' in data) {
+			// probably devtools message. could be a better check.
+			const msg = data as DevtoolsMessage;
 
-		await sendDevtoolsMessage(msg);
+			await sendDevtoolsMessage(msg);
+		} else if ('type' in data) {
+			const msg = data as LobbyOrGameData;
+
+			await sendLobbyOrGameData(msg);
+		}
 	}
 }
