@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { isAnyRequest } from "../../communication";
-import * as Msgpack from "@msgpack/msgpack";
-import * as Base64 from "base64-js";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MessageTypeString } from "../../util";
@@ -97,8 +95,8 @@ export default function MessageList({ scrollRef, selectedMessage, onItemSelected
 		return registerMessageHandler((msg) => {
 			let message, parsedMessage, error;
 			try {
-				message = Msgpack.decode(Base64.toByteArray(msg.message)) as object;
-				parsedMessage = msg.parsedMessage ? Msgpack.decode(Base64.toByteArray(msg.parsedMessage)) as object : undefined;
+				message = JSON.parse(msg.message) as object;
+				parsedMessage = msg.parsedMessage ? JSON.parse(msg.parsedMessage) as object : undefined;
 				error = msg.error;
 			} catch (e) {
 				if (!e)

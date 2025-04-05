@@ -16,8 +16,6 @@ export default function SidePanel({ selectedMessage, onClose }: { selectedMessag
 			<pre>{selectedMessage.error}</pre>
 		</>}
 
-		<p>This is the panel!</p>
-
 		<h2>Parsed message</h2>
 		<pre>{selectedMessage.parsedMessage
 			? JSON.stringify(selectedMessage.parsedMessage, null, 4)

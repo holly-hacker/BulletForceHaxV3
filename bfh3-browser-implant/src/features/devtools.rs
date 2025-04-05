@@ -20,12 +20,12 @@ pub struct DevtoolsMessage {
     pub socket_type: SocketType,
     /// The type of the message
     pub message_type: u8,
-    /// The raw message, encoded as MessagePack
+    /// The raw message, encoded as JSON
     #[wasm_bindgen(getter_with_clone)]
-    pub message: Vec<u8>,
-    /// The high-level message (if any), encoded as MessagePack
+    pub message: String,
+    /// The high-level message (if any), encoded as JSON
     #[wasm_bindgen(getter_with_clone)]
-    pub parsed_message: Option<Vec<u8>>,
+    pub parsed_message: Option<String>,
     /// The parsing error, if any occurred
     #[wasm_bindgen(getter_with_clone)]
     pub error: Option<String>,
@@ -46,7 +46,7 @@ impl super::Feature for DevtoolsFeature {
     ) -> anyhow::Result<PacketAction<PhotonMessage>> {
         // TODO: only if enabled?
 
-        let msg_bytes = rmp_serde::to_vec_named(msg).context("serialize messagepack")?;
+        let msg_bytes = serde_json::to_string(msg).context("serialize JSON")?;
 
         let (msg_type, parsed_bytes) = match msg {
             PhotonMessage::Init => (PhotonMessageType::Init, None),
@@ -57,7 +57,7 @@ impl super::Feature for DevtoolsFeature {
                     arg.clone()
                         .parse()
                         .context("parse OperationRequest message")
-                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
+                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
             ),
             PhotonMessage::OperationResponse(arg) => (
@@ -66,7 +66,7 @@ impl super::Feature for DevtoolsFeature {
                     arg.clone()
                         .parse()
                         .context("parse OperationResponse message")
-                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
+                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
             ),
             PhotonMessage::EventData(arg) => (
@@ -75,7 +75,7 @@ impl super::Feature for DevtoolsFeature {
                     arg.clone()
                         .parse()
                         .context("parse EventData message")
-                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
+                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
             ),
             PhotonMessage::DisconnectMessage(_) => (PhotonMessageType::DisconnectMessage, None),
@@ -85,7 +85,7 @@ impl super::Feature for DevtoolsFeature {
                     arg.clone()
                         .parse()
                         .context("parse InternalOperationRequest message")
-                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
+                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
             ),
             PhotonMessage::InternalOperationResponse(arg) => (
@@ -94,7 +94,7 @@ impl super::Feature for DevtoolsFeature {
                     arg.clone()
                         .parse()
                         .context("parse InternalOperationResponse message")
-                        .and_then(|p| rmp_serde::to_vec_named(&p).context("serialize messagepack")),
+                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
             ),
             PhotonMessage::Message(_) => (PhotonMessageType::Message, None),
