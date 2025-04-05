@@ -314,7 +314,8 @@ impl_u8_map_conversion! {
         [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
-        @required // should never be null according to PUN. Will log error but not crash.
+        // will never be null according to PUN when received (will log error but not crash), but can be null when
+        // received
         [parameter_code::CUSTOM_EVENT_CONTENT => PhotonObject::Hashtable]
         data: RpcCall,
     }
