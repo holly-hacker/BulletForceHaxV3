@@ -32,7 +32,13 @@ pub fn handle_tick() -> Result<(), MultiError> {
 
 pub fn handle_ws_open(url: &str) -> Result<(), MultiError> {
     trace!(url, "extracting port from url");
-    let port_str = url.split(':').last().unwrap().split('/').next().unwrap();
+    let port_str = url
+        .split(':')
+        .next_back()
+        .unwrap()
+        .split('/')
+        .next()
+        .unwrap();
 
     let socket_type: SocketType = port_str
         .parse::<u16>()
@@ -59,7 +65,13 @@ pub fn handle_ws_open(url: &str) -> Result<(), MultiError> {
 
 pub fn handle_ws_close(url: &str) -> Result<(), MultiError> {
     trace!(url, "extracting port from url");
-    let port_str = url.split(':').last().unwrap().split('/').next().unwrap();
+    let port_str = url
+        .split(':')
+        .next_back()
+        .unwrap()
+        .split('/')
+        .next()
+        .unwrap();
 
     let socket_type: SocketType = port_str
         .parse::<u16>()
@@ -87,7 +99,13 @@ pub fn handle_ws_close(url: &str) -> Result<(), MultiError> {
 pub fn handle_packet_send(buffer: &[u8], url: &str) -> anyhow::Result<PacketAction<Vec<u8>>> {
     // get port from url
     trace!(url, "extracting port from url");
-    let port_str = url.split(':').last().unwrap().split('/').next().unwrap();
+    let port_str = url
+        .split(':')
+        .next_back()
+        .unwrap()
+        .split('/')
+        .next()
+        .unwrap();
 
     let socket_type: SocketType = port_str
         .parse::<u16>()
@@ -101,7 +119,7 @@ pub fn handle_packet_send(buffer: &[u8], url: &str) -> anyhow::Result<PacketActi
 pub fn handle_packet_recv(buffer: &[u8], origin: &str) -> anyhow::Result<PacketAction<Vec<u8>>> {
     // get port from origin
     trace!(origin, "extracting port from origin");
-    let port_str = origin.split(':').last().unwrap();
+    let port_str = origin.split(':').next_back().unwrap();
 
     let socket_type: SocketType = port_str
         .parse::<u16>()
