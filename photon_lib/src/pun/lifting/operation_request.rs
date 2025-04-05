@@ -1,11 +1,15 @@
+use serde::Serialize;
+
 use crate::{
-    PhotonArray, PhotonHashmap,
+    ParameterMap, PhotonArray, PhotonHashmap,
     photon::{
-        message::{OperationRequest, PhotonMessageType},
+        message::{EventData, OperationRequest, PhotonMessageType},
         object::PhotonObject,
     },
     pun::{LiftingError, constants::*},
 };
+
+use super::{ParseEventExt, PunEvent};
 
 pub trait ParseOperationRequestExt {
     fn parse(self) -> Result<PunOperationRequest, LiftingError>;
@@ -78,7 +82,7 @@ impl ParseOperationRequestExt for OperationRequest {
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub enum PunOperationRequest {
     // 255: join?
     Leave(Box<LeaveRequest>),                 // 254
@@ -493,5 +497,57 @@ impl_photon_map_conversion! {
 
         [PhotonObject::Byte(game_property_key::CLEANUP_CACHE_ON_LEAVE) => PhotonObject::Boolean]
         cleanup_cache_on_leave: bool,
+    }
+}
+
+#[derive(Serialize)]
+pub struct RaiseEventParsed {
+    /// `EventCaching` setting. Defines if the server should simply send the event, put it in the cache or remove
+    /// events that are like this one.
+    ///
+    /// If this is not `None`, there is no data field.
+    pub cache: Option<u8>,
+
+    /// Any serializable datatype (including Hashtable like the other OpRaiseEvent overloads).
+    pub data: PunEvent,
+
+    pub actor_list: Option<PhotonArray>, // ints
+
+    pub group: Option<u8>,
+
+    pub receiver_group: Option<u8>,
+
+    pub event_forward: Option<u8>,
+}
+
+impl TryFrom<RaiseEventRequest> for RaiseEventParsed {
+    type Error = LiftingError;
+
+    fn try_from(value: RaiseEventRequest) -> Result<Self, Self::Error> {
+        let mut parameters = ParameterMap::default();
+        if let Some(data) = value.data {
+            parameters
+                .0
+                .insert(parameter_code::CUSTOM_EVENT_CONTENT, data);
+        }
+        parameters
+            .0
+            .insert(parameter_code::ACTOR_NR, PhotonObject::Integer(0));
+
+        let event_data = EventData {
+            code: value.code,
+            parameters,
+        };
+
+        let pun_event = event_data.parse()?;
+
+        Ok(Self {
+            cache: value.cache,
+            data: pun_event,
+            actor_list: value.actor_list,
+            group: value.group,
+            receiver_group: value.receiver_group,
+            event_forward: value.event_forward,
+        })
     }
 }

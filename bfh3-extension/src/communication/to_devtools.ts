@@ -10,12 +10,16 @@ export interface DevtoolsMessage {
 	socketType: "lobby" | "game";
 	/** The type of the message */
 	messageType: MessageTypeString | null;
-	/** The raw message, encoded as MessagePack */
-	message: string;
-	/** The high-level message (if any), encoded as MessagePack */
-	parsedMessage?: string;
+	/** The raw message, encoded as JSON */
+	rawMessage: string;
+	/** The high-level message (if any), encoded as JSON */
+	liftedMessage?: string;
+	/** An interpreted version of the message (if any), encoded as JSON */
+	interpretedMessage?: string;
+	/** Whether there was an error parsing or lifting this packet */
+	hasError: boolean,
 	/** The parsing error, if any occurred */
-	error?: string;
+	detail?: string;
 }
 
 export async function sendDevtoolsMessage(request: DevtoolsMessage, extensionId?: string): Promise<void> {

@@ -68,7 +68,7 @@ async function onMessage(event: MessageEvent<unknown>) {
 	const data = event.data;
 
 	if (data && typeof data === 'object') {
-		if ('message' in data) {
+		if ('rawMessage' in data) {
 			// probably devtools message. could be a better check.
 			const msg = data as DevtoolsMessage;
 

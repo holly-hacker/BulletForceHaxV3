@@ -3,6 +3,7 @@ use photon_lib::{
     photon::message::{PhotonMessage, PhotonMessageType},
     pun::lifting::{
         ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _,
+        PunOperationRequest, RaiseEventParsed,
     },
 };
 use wasm_bindgen::prelude::*;
@@ -22,13 +23,18 @@ pub struct DevtoolsMessage {
     pub message_type: u8,
     /// The raw message, encoded as JSON
     #[wasm_bindgen(getter_with_clone)]
-    pub message: String,
+    pub raw_message: String,
     /// The high-level message (if any), encoded as JSON
     #[wasm_bindgen(getter_with_clone)]
-    pub parsed_message: Option<String>,
+    pub lifted_message: Option<String>,
+    /// An interpreted version of the message (if any), encoded as JSON
+    #[wasm_bindgen(getter_with_clone)]
+    pub interpreted_message: Option<String>,
     /// The parsing error, if any occurred
     #[wasm_bindgen(getter_with_clone)]
-    pub error: Option<String>,
+    pub detail: Option<String>,
+    /// Whether an error occurred parsing or lifting this message
+    pub has_error: bool,
 }
 
 pub struct DevtoolsFeature;
@@ -46,20 +52,42 @@ impl super::Feature for DevtoolsFeature {
     ) -> anyhow::Result<PacketAction<PhotonMessage>> {
         // TODO: only if enabled?
 
-        let msg_bytes = serde_json::to_string(msg).context("serialize JSON")?;
+        let raw_message = serde_json::to_string(msg).context("serialize JSON")?;
 
-        let (msg_type, parsed_bytes) = match msg {
-            PhotonMessage::Init => (PhotonMessageType::Init, None),
-            PhotonMessage::InitResponse => (PhotonMessageType::InitResponse, None),
-            PhotonMessage::OperationRequest(arg) => (
-                PhotonMessageType::OperationRequest,
-                Some(
-                    arg.clone()
-                        .parse()
-                        .context("parse OperationRequest message")
-                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
-                ),
-            ),
+        let (message_type, maybe_lifted_message, maybe_interpreted_message, mut detail) = match msg
+        {
+            PhotonMessage::Init => (PhotonMessageType::Init, None, None, None),
+            PhotonMessage::InitResponse => (PhotonMessageType::InitResponse, None, None, None),
+            PhotonMessage::OperationRequest(arg) => {
+                let parsed = arg
+                    .clone()
+                    .parse()
+                    .context("parse OperationRequest message");
+
+                let mut detail = None;
+
+                let interpreted = parsed.as_ref().ok().and_then(|op_req| match op_req {
+                    PunOperationRequest::RaiseEvent(raise_event) => {
+                        let parsed_res = RaiseEventParsed::try_from(*raise_event.clone())
+                            .context("try into parsed event");
+                        if let Ok(parsed) = &parsed_res {
+                            let name: &'static str = (&parsed.data).into();
+                            detail = Some(format!("Event: {name}"));
+                        }
+                        Some(parsed_res)
+                    }
+                    _ => None,
+                });
+
+                (
+                    PhotonMessageType::OperationRequest,
+                    Some(parsed.and_then(|p| serde_json::to_string(&p).context("serialize JSON"))),
+                    interpreted.map(|res| {
+                        res.and_then(|ev| serde_json::to_string(&ev).context("serialize JSON"))
+                    }),
+                    detail,
+                )
+            }
             PhotonMessage::OperationResponse(arg) => (
                 PhotonMessageType::OperationResponse,
                 Some(
@@ -68,6 +96,8 @@ impl super::Feature for DevtoolsFeature {
                         .context("parse OperationResponse message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
+                None,
+                None,
             ),
             PhotonMessage::EventData(arg) => (
                 PhotonMessageType::EventData,
@@ -77,8 +107,12 @@ impl super::Feature for DevtoolsFeature {
                         .context("parse EventData message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
+                None,
+                None,
             ),
-            PhotonMessage::DisconnectMessage(_) => (PhotonMessageType::DisconnectMessage, None),
+            PhotonMessage::DisconnectMessage(_) => {
+                (PhotonMessageType::DisconnectMessage, None, None, None)
+            }
             PhotonMessage::InternalOperationRequest(arg) => (
                 PhotonMessageType::InternalOperationRequest,
                 Some(
@@ -87,6 +121,8 @@ impl super::Feature for DevtoolsFeature {
                         .context("parse InternalOperationRequest message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
+                None,
+                None,
             ),
             PhotonMessage::InternalOperationResponse(arg) => (
                 PhotonMessageType::InternalOperationResponse,
@@ -96,26 +132,45 @@ impl super::Feature for DevtoolsFeature {
                         .context("parse InternalOperationResponse message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
+                None,
+                None,
             ),
-            PhotonMessage::Message(_) => (PhotonMessageType::Message, None),
-            PhotonMessage::RawMessage(_) => (PhotonMessageType::RawMessage, None),
-            PhotonMessage::PingResult(_) => (PhotonMessageType::PingResult, None),
+            PhotonMessage::Message(_) => (PhotonMessageType::Message, None, None, None),
+            PhotonMessage::RawMessage(_) => (PhotonMessageType::RawMessage, None, None, None),
+            PhotonMessage::PingResult(_) => (PhotonMessageType::PingResult, None, None, None),
         };
 
-        let (parsed_bytes, error) = parsed_bytes
-            .map(|res| match res {
-                Ok(ok) => (Some(ok), None),
-                Err(err) => (None, Some(format!("{err:?}"))),
-            })
-            .unwrap_or((None, None));
+        let mut has_error = false;
+
+        let lifted_message = match maybe_lifted_message {
+            None => None,
+            Some(Ok(lifted_message)) => Some(lifted_message),
+            Some(Err(err)) => {
+                has_error = true;
+                detail = Some(format!("{err:?}"));
+                None
+            }
+        };
+
+        let interpreted_message = match maybe_interpreted_message {
+            None => None,
+            Some(Ok(interpreted_message)) => Some(interpreted_message),
+            Some(Err(err)) => {
+                has_error = true;
+                detail = Some(format!("{err:?}"));
+                None
+            }
+        };
 
         let devtools_message = DevtoolsMessage {
             direction,
             socket_type,
-            message_type: msg_type as u8,
-            message: msg_bytes,
-            parsed_message: parsed_bytes,
-            error,
+            message_type: message_type as u8,
+            raw_message,
+            lifted_message,
+            interpreted_message,
+            detail,
+            has_error,
         };
 
         send_message_to_devtools(devtools_message);

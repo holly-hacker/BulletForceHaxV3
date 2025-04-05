@@ -82,7 +82,7 @@ impl ParseEventExt for EventData {
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, strum::IntoStaticStr)]
 pub enum PunEvent {
     // orderedby descending event id
     /// Indicates that a player joined the room. This could be the current player.

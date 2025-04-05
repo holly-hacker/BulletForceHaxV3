@@ -18,9 +18,11 @@ export default function () {
 			direction: msg.direction ? "recv" : "send",
 			socketType: msg.socket_type ? "game" : "lobby",
 			messageType: messageTypeNumToString(msg.message_type),
-			message: msg.message,
-			parsedMessage: msg.parsed_message,
-			error: msg.error
+			rawMessage: msg.raw_message,
+			liftedMessage: msg.lifted_message,
+			interpretedMessage: msg.interpreted_message,
+			hasError: msg.has_error,
+			detail: msg.detail
 		};
 		msg.free();
 		window.postMessage(copiedMsg, "*");

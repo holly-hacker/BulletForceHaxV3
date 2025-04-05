@@ -11,18 +11,23 @@ export default function SidePanel({ selectedMessage, onClose }: { selectedMessag
 			<li>MessageType: <code>{selectedMessage.messageType}</code></li>
 		</ul>
 
-		{selectedMessage.error && <>
-			<h2>Error</h2>
-			<pre>{selectedMessage.error}</pre>
+		{selectedMessage.detail && <>
+			<h2>{selectedMessage.hasError ? 'Error' : 'Detail'}</h2>
+			<pre>{selectedMessage.detail}</pre>
+		</>}
+
+		{selectedMessage.interpretedMessage && <>
+			<h2>Interpreted message</h2>
+			<pre>{JSON.stringify(selectedMessage.interpretedMessage, null, 4)}</pre>
 		</>}
 
 		<h2>Parsed message</h2>
-		<pre>{selectedMessage.parsedMessage
-			? JSON.stringify(selectedMessage.parsedMessage, null, 4)
+		<pre>{selectedMessage.liftedMessage
+			? JSON.stringify(selectedMessage.liftedMessage, null, 4)
 			: '<none>'
 		}</pre>
 
 		<h2>Raw message</h2>
-		<pre>{JSON.stringify(selectedMessage.message, null, 4)}</pre>
+		<pre>{JSON.stringify(selectedMessage.rawMessage, null, 4)}</pre>
 	</div>;
 };

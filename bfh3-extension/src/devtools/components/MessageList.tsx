@@ -14,11 +14,15 @@ export interface UnpackedDevtoolsMessage {
 	/** The type of the message */
 	messageType: MessageTypeString | null;
 	/** The raw message */
-	message?: object;
+	rawMessage?: object;
 	/** The high-level message (if any) */
-	parsedMessage?: object;
-	/** The parsing error, if any occurred */
-	error?: string;
+	liftedMessage?: object;
+	/** An interpreted version of the message (if any) */
+	interpretedMessage?: object;
+	/** Whether this message contains an error  */
+	hasError: boolean;
+	/** Short details or an error message */
+	detail?: string;
 }
 
 function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
@@ -28,17 +32,11 @@ function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void 
 		if (!isAnyRequest(request)) return;
 		// log(`incoming request from ${sender.url}`, request);
 
-		switch (request.type) {
-			case SEND_DEVTOOLS_MESSAGE: {
-				cb(request.data);
-				sendResponse(undefined);
-				break;
-			}
-			default: {
-				sendResponse(undefined);
-				break;
-			}
+		if (request.type == SEND_DEVTOOLS_MESSAGE) {
+			cb(request.data);
 		}
+
+		sendResponse(undefined);
 	}
 
 	return () => chrome.runtime.onMessage.removeListener(onMessage);
@@ -63,22 +61,24 @@ const columns = [
 	columnHelper.display({
 		id: 'parsedName',
 		header: 'Parameter Type',
-		cell: props => getParsedName(props.row.original) ?? '<unknown>',
+		cell: props => getParameterTypeName(props.row.original) ?? '<unknown>',
 	}),
-	columnHelper.accessor('error', {
-		header: 'Error',
+	columnHelper.accessor('detail', {
+		header: 'Details',
 	}),
 ];
 
-function getParsedName(message: UnpackedDevtoolsMessage): string | null {
+function getParameterTypeName(message: UnpackedDevtoolsMessage): string | null {
 	// don't do anything for init and initresponse
 	if (!message.messageType) return '';
 	if (['Init', 'InitResponse'].includes(message.messageType)) return '';
 
-	if (!message.parsedMessage) return null;
+	if (!message.liftedMessage) return null;
 
 	// OperationResponse contains an array as top-level, with first item being the actual parsed message
-	const toCheck = Array.isArray(message.parsedMessage) ? message.parsedMessage[0] as object : message.parsedMessage;
+	const toCheck = Array.isArray(message.liftedMessage)
+		? message.liftedMessage[0] as object
+		: message.liftedMessage;
 
 	const keys = Object.keys(toCheck);
 	return keys[0] ? keys[0] : null;
@@ -93,28 +93,34 @@ export default function MessageList({ scrollRef, selectedMessage, onItemSelected
 
 	useEffect(() => {
 		return registerMessageHandler((msg) => {
-			let message, parsedMessage, error;
+			let rawMessage, liftedMessage, interpretedMessage, detail, hasError = false;
 			try {
-				message = JSON.parse(msg.message) as object;
-				parsedMessage = msg.parsedMessage ? JSON.parse(msg.parsedMessage) as object : undefined;
-				error = msg.error;
+				detail = msg.detail;
+				hasError = msg.hasError;
+
+				// ops that can error, in order of dependency
+				rawMessage = JSON.parse(msg.rawMessage) as object;
+				liftedMessage = msg.liftedMessage ? JSON.parse(msg.liftedMessage) as object : undefined;
+				interpretedMessage = msg.interpretedMessage ? JSON.parse(msg.interpretedMessage) as object : undefined;
 			} catch (e) {
 				if (!e)
-					error = undefined;
+					detail = undefined;
 				else if (e instanceof Error)
-					error = e.name;
+					detail = e.name;
 				else if (typeof e === 'string')
-					error = e;
+					detail = e;
 				else
-					error = JSON.stringify(e);
+					detail = JSON.stringify(e);
 			}
 			const unpackedMessage: UnpackedDevtoolsMessage = {
 				direction: msg.direction,
 				socketType: msg.socketType,
 				messageType: msg.messageType,
-				message,
-				parsedMessage,
-				error,
+				rawMessage,
+				liftedMessage,
+				interpretedMessage,
+				detail,
+				hasError: hasError,
 			};
 			setMessages(prevMessages => [...prevMessages, unpackedMessage]);
 		});
@@ -157,7 +163,7 @@ export default function MessageList({ scrollRef, selectedMessage, onItemSelected
 							<tr
 								onClick={() => onItemSelected(row.original)}
 								key={row.id}
-								className={`${row.original.error ? "has-error" : ""} ${selectedMessage === row.original ? 'is-selected' : (virtualRow.index % 2 ? 'is-even' : 'is-odd')}`}
+								className={`${row.original.hasError ? "has-error" : ""} ${selectedMessage === row.original ? 'is-selected' : (virtualRow.index % 2 ? 'is-even' : 'is-odd')}`}
 								style={{
 									height: `${virtualRow.size}px`,
 									transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
