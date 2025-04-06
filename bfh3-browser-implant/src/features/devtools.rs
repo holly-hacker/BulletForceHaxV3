@@ -3,13 +3,15 @@ use photon_lib::{
     photon::message::{PhotonMessage, PhotonMessageType},
     pun::lifting::{
         ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _,
-        PunOperationRequest, RaiseEventParsed,
+        PunEvent, PunOperationRequest, RaiseEventParsed, RpcEvent,
     },
 };
+use strum::EnumProperty as _;
 use wasm_bindgen::prelude::*;
 
 use crate::{
     bindgen::send_message_to_devtools,
+    game_data::BfhRpcCall,
     networking::{PacketAction, PacketDirection, SocketType},
 };
 
@@ -73,6 +75,12 @@ impl super::Feature for DevtoolsFeature {
                         if let Ok(parsed) = &parsed_res {
                             let name: &'static str = (&parsed.data).into();
                             detail = Some(format!("Event: {name}"));
+
+                            if let PunEvent::Rpc(rpc) = &parsed.data {
+                                if let Some(new_detail) = get_rpc_function_call_string(rpc) {
+                                    detail = Some(new_detail);
+                                }
+                            }
                         }
                         Some(parsed_res)
                     }
@@ -99,17 +107,24 @@ impl super::Feature for DevtoolsFeature {
                 None,
                 None,
             ),
-            PhotonMessage::EventData(arg) => (
-                PhotonMessageType::EventData,
-                Some(
-                    arg.clone()
-                        .parse()
-                        .context("parse EventData message")
-                        .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
-                ),
-                None,
-                None,
-            ),
+            PhotonMessage::EventData(arg) => {
+                let parsed = arg.clone().parse().context("parse EventData message");
+
+                let mut detail = None;
+
+                if let Ok(PunEvent::Rpc(rpc)) = parsed.as_ref() {
+                    if let Some(new_detail) = get_rpc_function_call_string(rpc) {
+                        detail = Some(new_detail);
+                    }
+                }
+
+                (
+                    PhotonMessageType::EventData,
+                    Some(parsed.and_then(|p| serde_json::to_string(&p).context("serialize JSON"))),
+                    None,
+                    detail,
+                )
+            }
             PhotonMessage::DisconnectMessage(_) => {
                 (PhotonMessageType::DisconnectMessage, None, None, None)
             }
@@ -177,4 +192,26 @@ impl super::Feature for DevtoolsFeature {
 
         Ok(PacketAction::Ignore)
     }
+}
+
+fn get_rpc_function_call_string(rpc: &RpcEvent) -> Option<String> {
+    let Some(data) = &rpc.data else {
+        return None;
+    };
+
+    let rpc_name = match (data.rpc_index, &data.method_name) {
+        (Some(index), _) => BfhRpcCall::from_repr(index)
+            .map(|call| {
+                call.get_str("Name")
+                    .unwrap_or_else(|| call.into())
+                    .to_owned()
+            })
+            .unwrap_or_else(|| "<unknown>".to_string()),
+        (_, Some(name)) => name.clone(),
+        _ => "<unknown>".into(),
+    };
+
+    let rpc_arguments = &data.in_method_parameters.clone().unwrap_or_default();
+
+    Some(format!("RPC call: {rpc_name}({rpc_arguments:?})"))
 }

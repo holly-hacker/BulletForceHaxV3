@@ -23,6 +23,7 @@ dependencies = [
  "console_error_panic_hook",
  "photon_lib",
  "serde_json",
+ "strum",
  "tracing",
  "tracing-subscriber",
  "tracing-web",
