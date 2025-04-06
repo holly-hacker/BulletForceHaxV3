@@ -65,6 +65,7 @@ const columns = [
 	}),
 	columnHelper.accessor('detail', {
 		header: 'Details',
+		cell: props => (<code>{props.getValue()}</code>),
 	}),
 ];
 

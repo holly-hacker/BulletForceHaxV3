@@ -1,6 +1,6 @@
 //! Implements the low-level object types and their (de)serialization
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Display};
 
 use bytes::{Buf, BufMut};
 use ordered_float::OrderedFloat;
@@ -59,6 +59,102 @@ pub enum PhotonObject {
     Array(PhotonArray),
     /// Object type 0x7A, holds an `object[]`
     ObjectArray(PhotonObjectArray),
+}
+
+impl Display for PhotonObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PhotonObject::Null => write!(f, "null")?,
+            PhotonObject::Dictionary(_, photon_dictionary) => {
+                write!(f, "{{")?;
+                for (i, (key, value)) in photon_dictionary.0.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{key} => {value}")?;
+                }
+                write!(f, "}}")?;
+            }
+            PhotonObject::StringArray(items) => {
+                write!(f, "[")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{item:?}")?;
+                }
+                write!(f, "]")?;
+            }
+            PhotonObject::Byte(b) => write!(f, "{b}u8")?,
+            PhotonObject::Custom(custom_data) => write!(f, "{custom_data:?}")?,
+            PhotonObject::Double(ordered_float) => write!(f, "{}f64", ordered_float.0)?,
+            PhotonObject::EventData(event_data) => write!(f, "{event_data:?}")?,
+            PhotonObject::Float(ordered_float) => write!(f, "{}f32", ordered_float.0)?,
+            PhotonObject::Hashtable(photon_hashmap) => {
+                write!(f, "{{")?;
+                for (i, (key, value)) in photon_hashmap.0.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{key} => {value}")?;
+                }
+                write!(f, "}}")?;
+            }
+            PhotonObject::Integer(i) => write!(f, "{i}i32")?,
+            PhotonObject::Short(s) => write!(f, "{s}i16")?,
+            PhotonObject::Long(l) => write!(f, "{l}i64")?,
+            PhotonObject::IntArray(items) => {
+                write!(f, "[")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{item}i32")?;
+                }
+                write!(f, "]")?;
+            }
+            PhotonObject::Boolean(b) => write!(f, "{b}")?,
+            PhotonObject::OperationResponse(operation_response) => {
+                write!(f, "{operation_response:?}")?
+            }
+            PhotonObject::OperationRequest(operation_request) => {
+                write!(f, "{operation_request:?}")?
+            }
+            PhotonObject::String(s) => write!(f, "{s:?}")?,
+            PhotonObject::ByteArray(items) => {
+                write!(f, "[")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{item}u8")?;
+                }
+                write!(f, "]")?;
+            }
+            PhotonObject::Array(photon_array) => {
+                write!(f, "[")?;
+                for (i, item) in photon_array.0.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{item}")?;
+                }
+                write!(f, "]")?;
+            }
+            PhotonObject::ObjectArray(photon_object_array) => {
+                write!(f, "objects [")?;
+                for (i, item) in photon_object_array.0.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{item}")?;
+                }
+                write!(f, "]")?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 macro_rules! impl_from {

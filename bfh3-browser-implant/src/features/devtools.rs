@@ -3,7 +3,7 @@ use photon_lib::{
     photon::message::{PhotonMessage, PhotonMessageType},
     pun::lifting::{
         ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _,
-        PunEvent, PunOperationRequest, RaiseEventParsed, RpcEvent,
+        PunEvent, PunOperationRequest, RaiseEventParsed, RpcCall,
     },
 };
 use strum::EnumProperty as _;
@@ -77,8 +77,8 @@ impl super::Feature for DevtoolsFeature {
                             detail = Some(format!("Event: {name}"));
 
                             if let PunEvent::Rpc(rpc) = &parsed.data {
-                                if let Some(new_detail) = get_rpc_function_call_string(rpc) {
-                                    detail = Some(new_detail);
+                                if let Some(call) = &rpc.data {
+                                    detail = Some(get_rpc_function_call_string(call));
                                 }
                             }
                         }
@@ -113,8 +113,8 @@ impl super::Feature for DevtoolsFeature {
                 let mut detail = None;
 
                 if let Ok(PunEvent::Rpc(rpc)) = parsed.as_ref() {
-                    if let Some(new_detail) = get_rpc_function_call_string(rpc) {
-                        detail = Some(new_detail);
+                    if let Some(call) = &rpc.data {
+                        detail = Some(get_rpc_function_call_string(call));
                     }
                 }
 
@@ -194,12 +194,8 @@ impl super::Feature for DevtoolsFeature {
     }
 }
 
-fn get_rpc_function_call_string(rpc: &RpcEvent) -> Option<String> {
-    let Some(data) = &rpc.data else {
-        return None;
-    };
-
-    let rpc_name = match (data.rpc_index, &data.method_name) {
+fn get_rpc_function_call_string(call: &RpcCall) -> String {
+    let rpc_name = match (call.rpc_index, &call.method_name) {
         (Some(index), _) => BfhRpcCall::from_repr(index)
             .map(|call| {
                 call.get_str("Name")
@@ -211,7 +207,15 @@ fn get_rpc_function_call_string(rpc: &RpcEvent) -> Option<String> {
         _ => "<unknown>".into(),
     };
 
-    let rpc_arguments = &data.in_method_parameters.clone().unwrap_or_default();
+    let mut args = String::new();
+    if let Some(items) = &call.in_method_parameters {
+        for (i, item) in items.iter().enumerate() {
+            if i > 0 {
+                args.push_str(", ");
+            }
+            args.push_str(&item.to_string());
+        }
+    }
 
-    Some(format!("RPC call: {rpc_name}({rpc_arguments:?})"))
+    format!("RPC call: {rpc_name}({args})")
 }
