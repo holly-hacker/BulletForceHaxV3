@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use photon_bulletforce::rpc::BfhRpcCall;
 use photon_lib::{
     photon::message::{PhotonMessage, PhotonMessageType},
     pun::lifting::{
@@ -6,12 +7,10 @@ use photon_lib::{
         PunEvent, PunOperationRequest, RaiseEventParsed, RpcCall,
     },
 };
-use strum::EnumProperty as _;
 use wasm_bindgen::prelude::*;
 
 use crate::{
     bindgen::send_message_to_devtools,
-    game_data::BfhRpcCall,
     networking::{PacketAction, PacketDirection, SocketType},
 };
 
@@ -197,14 +196,10 @@ impl super::Feature for DevtoolsFeature {
 fn get_rpc_function_call_string(call: &RpcCall) -> String {
     let rpc_name = match (call.rpc_index, &call.method_name) {
         (Some(index), _) => BfhRpcCall::from_repr(index)
-            .map(|call| {
-                call.get_str("Name")
-                    .unwrap_or_else(|| call.into())
-                    .to_owned()
-            })
-            .unwrap_or_else(|| "<unknown>".to_string()),
-        (_, Some(name)) => name.clone(),
-        _ => "<unknown>".into(),
+            .map(|call| call.get_name())
+            .unwrap_or_else(|| "<unknown>"),
+        (_, Some(name)) => name.as_str(),
+        _ => "<unknown>",
     };
 
     let mut args = String::new();

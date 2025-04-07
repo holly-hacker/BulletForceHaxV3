@@ -21,9 +21,9 @@ dependencies = [
  "anyhow",
  "bfh3-browser-implant-macros",
  "console_error_panic_hook",
+ "photon_bulletforce",
  "photon_lib",
  "serde_json",
- "strum",
  "tracing",
  "tracing-subscriber",
  "tracing-web",
@@ -204,6 +204,13 @@ name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
+name = "photon_bulletforce"
+version = "0.1.0"
+dependencies = [
+ "strum",
+]
 
 [[package]]
 name = "photon_lib"

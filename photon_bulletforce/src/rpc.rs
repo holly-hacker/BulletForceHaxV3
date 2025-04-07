@@ -1,4 +1,5 @@
-#[allow(dead_code)]
+use strum::EnumProperty as _;
+
 #[repr(u8)]
 #[derive(Debug, strum::EnumProperty, strum::IntoStaticStr, strum::FromRepr)]
 pub enum BfhRpcCall {
@@ -218,4 +219,10 @@ pub enum BfhRpcCall {
     RpcSendReceiveCustomMapToServer,
     #[strum(props(Name = "RpcCustomMapLikeDislike"))]
     RpcCustomMapLikeDislike,
+}
+
+impl BfhRpcCall {
+    pub fn get_name(&self) -> &'static str {
+        self.get_str("Name").unwrap_or_else(|| self.into())
+    }
 }
