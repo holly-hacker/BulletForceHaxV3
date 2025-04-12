@@ -247,3 +247,19 @@ pub const FIND_FRIENDS_REQUEST_LIST: u8 = 1;
 
 /// (1) Used in [operation_code::FIND_FRIENDS] response. Contains bool[] list of online states (false if not online).
 pub const FIND_FRIENDS_RESPONSE_ONLINE_LIST: u8 = 1;
+
+/// Time used for ping. Photon uses the amount of milliseconds since system start (`Environment.TickCount`).
+pub const PING_CLIENT_TIME: u8 = 1;
+
+/// Ping response with echo'd client time
+pub const PONG_CLIENT_TIME: u8 = 1;
+
+/// Ping response with server time
+pub const PONG_SERVER_TIME: u8 = 2;
+
+pub const INIT_ENCRYPTION_CLIENT_KEY: u8 = 1;
+
+pub const INIT_ENCRYPTION_SERVER_KEY: u8 = 1;
+
+/// Seems to be unused. Intended for encrypted connections.
+pub const INIT_ENCRYPTION_MODE_KEY: u8 = 2;

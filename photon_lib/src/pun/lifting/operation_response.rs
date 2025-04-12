@@ -7,6 +7,8 @@ use crate::{
     pun::{LiftingError, constants::*},
 };
 
+use super::EmptyResponse;
+
 pub trait ParseOperationResponseExt {
     fn parse(self) -> Result<(PunOperationResponse, i16, Option<String>), LiftingError>;
 }
@@ -129,8 +131,6 @@ impl PunOperationResponse {
 }
 
 impl_u8_map_conversion! {
-    EmptyResponse { }
-
     AuthenticateResponse {
         [parameter_code::REPORT_QOS => PhotonObject::Boolean]
         report_qos: bool,

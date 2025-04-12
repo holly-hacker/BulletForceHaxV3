@@ -47,7 +47,8 @@ pub enum PhotonMessage {
     Message(PhotonObject),
     /// Message type 0x09, payload data does not seem to be used.
     RawMessage(Vec<u8>),
-    /// S->C message with magic number 0xF0, the client will calculate roundtrip time and server time offset.
+    /// S->C message with magic number 0xF0, the client will calculate roundtrip time and server time offset. Only seems
+    /// to be used on connections that don't do their own framing.
     PingResult(PingResult),
 }
 

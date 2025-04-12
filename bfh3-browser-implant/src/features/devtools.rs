@@ -3,8 +3,9 @@ use photon_bulletforce::rpc::BfhRpcCall;
 use photon_lib::{
     photon::message::{PhotonMessage, PhotonMessageType},
     pun::lifting::{
-        ParseEventExt as _, ParseOperationRequestExt as _, ParseOperationResponseExt as _,
-        PunEvent, PunOperationRequest, RaiseEventParsed, RpcCall,
+        ParseEventExt as _, ParseInternalOperationRequestExt as _,
+        ParseInternalOperationResponseExt as _, ParseOperationRequestExt as _,
+        ParseOperationResponseExt as _, PunEvent, PunOperationRequest, RaiseEventParsed, RpcCall,
     },
 };
 use wasm_bindgen::prelude::*;
@@ -131,7 +132,7 @@ impl super::Feature for DevtoolsFeature {
                 PhotonMessageType::InternalOperationRequest,
                 Some(
                     arg.clone()
-                        .parse()
+                        .parse_internal()
                         .context("parse InternalOperationRequest message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
@@ -142,7 +143,7 @@ impl super::Feature for DevtoolsFeature {
                 PhotonMessageType::InternalOperationResponse,
                 Some(
                     arg.clone()
-                        .parse()
+                        .parse_internal()
                         .context("parse InternalOperationResponse message")
                         .and_then(|p| serde_json::to_string(&p).context("serialize JSON")),
                 ),
