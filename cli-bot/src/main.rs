@@ -54,13 +54,38 @@ fn main() {
                 // look for target player
                 let key = games
                     .iter()
-                    .find(|(_k, v)| {
-                        if let Some(PhotonObject::String(players)) =
-                            v.custom_properties.get("PlayersOnline")
+                    .find(|(k, v)| {
+                        // bullet force
+                        if let Some(PhotonObject::String(str)) = v.custom_properties.get("roomName")
                         {
-                            if players.split(',').any(|s| s == args.player_name) {
+                            if str.contains(&args.lobby_name_segment) {
+                                debug!(matched = str, "Matched bf name");
                                 return true;
                             }
+                        }
+
+                        // some other game, version is 1.0.x
+                        if let Some(PhotonObject::String(str)) = v.custom_properties.get("RoomName")
+                        {
+                            if str.contains(&args.lobby_name_segment) {
+                                debug!(matched = str, "Matched other game 1");
+                                return true;
+                            }
+                        }
+
+                        // platform=mobile, version=newfps-333
+                        if let Some(PhotonObject::String(str)) =
+                            v.custom_properties.get("matchname")
+                        {
+                            if str.contains(&args.lobby_name_segment) {
+                                debug!(matched = str, "Matched other game 2");
+                                return true;
+                            }
+                        }
+
+                        if k.contains(&args.lobby_name_segment) {
+                            debug!(matched = k, "Matched game key");
+                            return true;
                         }
 
                         false
@@ -95,8 +120,8 @@ fn main() {
     };
 
     info!(
-        "Found player {} in game {room_name}, can join at address {address} with token {token}",
-        args.player_name
+        "Found lobby named '{}' in game {room_name}, can join at address {address} with token {token}",
+        args.lobby_name_segment
     );
 }
 

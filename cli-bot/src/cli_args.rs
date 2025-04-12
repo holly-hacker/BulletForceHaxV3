@@ -15,7 +15,7 @@ pub struct CliArgs {
 
     /// the lobby to join
     #[argh(positional)]
-    pub player_name: String,
+    pub lobby_name_segment: String,
 }
 
 fn parse_region(value: &str) -> Result<Region, String> {
