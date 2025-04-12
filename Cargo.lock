@@ -92,7 +92,6 @@ dependencies = [
 name = "bulletforce_client"
 version = "0.1.0"
 dependencies = [
- "photon_bulletforce",
  "photon_lib",
  "strum",
  "thiserror",

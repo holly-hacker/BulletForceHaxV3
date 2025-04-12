@@ -1,14 +1,22 @@
-use bulletforce_client::{BulletForceLobbyClient, LobbyConnectionSettings};
+use std::str::FromStr as _;
+
+use bulletforce_client::{ClientImpl, ClientWrapper};
 use tracing::{debug, error, info, trace, warn};
 use tungstenite::{ClientRequestBuilder, Message, http::Uri};
 
-pub fn connect_lobby<T, F>(settings: LobbyConnectionSettings, mut callback: F) -> Option<T>
+pub fn drive_client_loop<TClient: ClientImpl, TResp, F>(
+    settings: TClient::Settings,
+    mut callback: F,
+) -> Option<TResp>
 where
-    F: FnMut(&mut BulletForceLobbyClient) -> Option<T>,
+    F: FnMut(&mut ClientWrapper<TClient>) -> Option<TResp>,
 {
-    let mut client = BulletForceLobbyClient::create(settings);
+    let mut client = ClientWrapper::<TClient>::create(settings);
 
-    let uri = Uri::from_static(client.get_lobby_url());
+    let uri = match client.get_url() {
+        std::borrow::Cow::Borrowed(str) => Uri::from_static(str),
+        std::borrow::Cow::Owned(string) => Uri::from_str(&string).expect("should have valid url"),
+    };
     let builder =
         ClientRequestBuilder::new(uri).with_header("Sec-WebSocket-Protocol", "GpBinaryV16");
 
@@ -41,7 +49,7 @@ where
 
         // run client logic
         if let Some(ret) = callback(&mut client) {
-            debug!("Callback for lobby loop returned value, exiting loop");
+            debug!("Callback in client loop returned value, exiting loop");
             return Some(ret);
         }
     }

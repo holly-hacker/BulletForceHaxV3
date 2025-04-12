@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use photon_lib::{ReadError, WriteError, pun::LiftingError};
 
 #[derive(thiserror::Error, Debug)]
-pub enum LobbyError {
+pub enum HandlerError {
     #[error("failed to parse message: {0}")]
     PhotonReadError(#[from] ReadError),
     #[error("failed to interpreting message: {0}")]

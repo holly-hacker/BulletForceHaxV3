@@ -1,13 +1,16 @@
 mod cli_args;
+mod connect_util;
 mod utils;
-mod websocket_client;
 
-use bulletforce_client::{LobbyConnectionSettings, LobbyState, photon_lib::PhotonObject};
+use bulletforce_client::{
+    lobby::{LobbyConnectionSettings, LobbyState},
+    photon_lib::PhotonObject,
+};
 use cli_args::CliArgs;
+use connect_util::drive_client_loop;
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::util::SubscriberInitExt;
 use utils::generate_uuid_v4;
-use websocket_client::connect_lobby;
 
 fn main() {
     let args: CliArgs = argh::from_env();
@@ -20,7 +23,7 @@ fn main() {
     };
 
     let mut last_game_stats = (0, 0, 0, 0);
-    let output = connect_lobby(settings, |client| {
+    let match_info = drive_client_loop(settings, |client| {
         match client.get_state() {
             LobbyState::ReadyNoLobby { .. } => {
                 info!("Connected to server, joining lobby");
@@ -104,10 +107,7 @@ fn main() {
                 room_name,
                 address,
             } => {
-                let token = token.clone();
-                let room_name = room_name.clone();
-                let address = address.clone();
-                return Some((token, room_name, address));
+                return Some((token.clone(), room_name.clone(), address.clone()));
             }
             _ => (),
         }
@@ -115,7 +115,7 @@ fn main() {
         None
     });
 
-    let Some((token, room_name, address)) = output else {
+    let Some((token, room_name, address)) = match_info else {
         return;
     };
 
