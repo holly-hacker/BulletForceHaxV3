@@ -1,7 +1,7 @@
 mod utils;
 
 use bulletforce_client::{BulletForceLobbyClient, LobbyConnectionSettings, LobbyState};
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, error, info, trace, warn};
 use tracing_subscriber::util::SubscriberInitExt;
 use tungstenite::{ClientRequestBuilder, Message, http::Uri};
 use utils::generate_uuid_v4;
@@ -43,7 +43,9 @@ fn main() {
         // feed in incoming messages
         let incoming_message = ws_stream.read().expect("get incoming message");
         if let Message::Binary(bytes) = incoming_message {
-            client.handle_input(&bytes);
+            if let Err(e) = client.handle_input(&bytes) {
+                error!("Error while handling incoming message: {e}");
+            }
         } else {
             warn!(
                 "Received message that was not binary: {:?}",
@@ -55,7 +57,9 @@ fn main() {
         match client.get_state() {
             LobbyState::ReadyNoLobby { .. } => {
                 info!("Connected to server, joining lobby");
-                client.join_lobby();
+                if let Err(e) = client.join_lobby() {
+                    error!("Error while trying to join lobby: {e}");
+                }
             }
             LobbyState::Ready {
                 games, app_stats, ..

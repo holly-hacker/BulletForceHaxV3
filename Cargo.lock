@@ -63,6 +63,7 @@ dependencies = [
  "photon_bulletforce",
  "photon_lib",
  "strum",
+ "thiserror",
  "tracing",
 ]
 

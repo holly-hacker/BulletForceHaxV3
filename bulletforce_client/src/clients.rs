@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use photon_lib::{
+    WriteError,
     photon::message::PhotonMessage,
     pun::{
         constants::operation_code,
@@ -13,7 +14,7 @@ use photon_lib::{
 use strum::IntoDiscriminant;
 use tracing::{debug, trace, warn};
 
-use crate::utils::to_operation_request;
+use crate::{errors::LobbyError, utils::to_operation_request};
 
 const APP_ID: &str = "8c2cad3e-2e3f-4941-9044-b390ff2c4956";
 
@@ -38,8 +39,8 @@ impl BulletForceLobbyClient {
     }
 
     /// Handle incoming websocket messages
-    pub fn handle_input(&mut self, mut data: &[u8]) {
-        let packet = PhotonMessage::from_websocket_bytes(&mut data).expect("parse message");
+    pub fn handle_input(&mut self, mut data: &[u8]) -> Result<(), LobbyError> {
+        let packet = PhotonMessage::from_websocket_bytes(&mut data)?;
         trace!("Received message: {packet:?}");
 
         let new_state = match &mut self.state {
@@ -57,7 +58,7 @@ impl BulletForceLobbyClient {
 
                             ..Default::default()
                         },
-                    ));
+                    ))?;
                     Some(LobbyState::WaitingForAuthResponse { app_stats: None })
                 } else {
                     warn!(
@@ -68,16 +69,22 @@ impl BulletForceLobbyClient {
             }
             LobbyState::WaitingForAuthResponse { app_stats } => match packet {
                 PhotonMessage::OperationResponse(operation_response) => {
-                    let (response, _return_code, _debug_str) = operation_response.parse().unwrap();
+                    let (response, _return_code, _debug_str) = operation_response.parse()?;
                     match response {
                         PunOperationResponse::Authenticate(authenticate) => {
                             debug!("Received lobby authenticate response");
 
                             let token: String = authenticate
                                 .token
-                                .expect("response should contain token")
+                                .ok_or_else(|| {
+                                    LobbyError::Other("auth response did not contain token".into())
+                                })?
                                 .try_into()
-                                .expect("token should be string");
+                                .map_err(|e| {
+                                    LobbyError::Other(
+                                        format!("failed to read auth token as string: {e}").into(),
+                                    )
+                                })?;
 
                             Some(LobbyState::ReadyNoLobby {
                                 token,
@@ -93,7 +100,7 @@ impl BulletForceLobbyClient {
                     }
                 }
                 PhotonMessage::EventData(event_data) => {
-                    let event_data = event_data.parse().unwrap();
+                    let event_data = event_data.parse()?;
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
@@ -111,7 +118,7 @@ impl BulletForceLobbyClient {
             },
             LobbyState::ReadyNoLobby { app_stats, .. } => match packet {
                 PhotonMessage::EventData(event_data) => {
-                    let event_data = event_data.parse().unwrap();
+                    let event_data = event_data.parse()?;
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
@@ -130,7 +137,7 @@ impl BulletForceLobbyClient {
             },
             LobbyState::JoiningLobby { app_stats, token } => match packet {
                 PhotonMessage::OperationResponse(operation_response) => {
-                    let (response, _return_code, _debug_str) = operation_response.parse().unwrap();
+                    let (response, _return_code, _debug_str) = operation_response.parse()?;
                     match response {
                         PunOperationResponse::JoinLobby(_join_lobby) => {
                             debug!("Received lobby JoinLobby");
@@ -150,7 +157,7 @@ impl BulletForceLobbyClient {
                     }
                 }
                 PhotonMessage::EventData(event_data) => {
-                    let event_data = event_data.parse().unwrap();
+                    let event_data = event_data.parse()?;
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
@@ -171,7 +178,7 @@ impl BulletForceLobbyClient {
                 app_stats, games, ..
             } => match packet {
                 PhotonMessage::EventData(event_data) => {
-                    let event_data = event_data.parse().unwrap();
+                    let event_data = event_data.parse()?;
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
@@ -205,13 +212,10 @@ impl BulletForceLobbyClient {
         };
 
         if let Some(new_state) = new_state {
-            debug!(
-                "Lobby state {:?} ➜ {:?}",
-                self.state.discriminant(),
-                new_state.discriminant()
-            );
-            self.state = new_state;
+            self.set_new_state(new_state);
         }
+
+        Ok(())
     }
 
     /// Get a message to send out through the websocket connection
@@ -223,14 +227,21 @@ impl BulletForceLobbyClient {
         &self.state
     }
 
-    pub fn join_lobby(&mut self) {
+    pub fn join_lobby(&mut self) -> Result<(), LobbyError> {
         // funky take/match combo to avoid clone.
         let (app_stats, token) = match std::mem::take(&mut self.state) {
             LobbyState::ReadyNoLobby { app_stats, token } => (app_stats, token),
             state => {
                 // restore state
                 self.state = state;
-                todo!("handle error due to bad state");
+                return Err(LobbyError::Other(
+                    format!(
+                        "state should be {:?} when joining lobby, was {:?}",
+                        LobbyStateDiscriminants::ReadyNoLobby,
+                        self.state.discriminant(),
+                    )
+                    .into(),
+                ));
             }
         };
 
@@ -241,15 +252,26 @@ impl BulletForceLobbyClient {
                 lobby_name: None,
                 lobby_type: None,
             },
-        ));
+        ))?;
 
-        self.state = LobbyState::JoiningLobby { token, app_stats }
+        self.set_new_state(LobbyState::JoiningLobby { token, app_stats });
+        Ok(())
     }
 
-    fn enqueue_sent_message(&mut self, message: PhotonMessage) {
+    fn enqueue_sent_message(&mut self, message: PhotonMessage) -> Result<(), WriteError> {
         let mut buf = vec![];
-        message.to_websocket_bytes(&mut buf).unwrap();
+        message.to_websocket_bytes(&mut buf)?;
         self.buffered_messages.push(buf);
+        Ok(())
+    }
+
+    fn set_new_state(&mut self, new_state: LobbyState) {
+        debug!(
+            "Lobby state {:?} ➜ {:?}",
+            self.state.discriminant(),
+            new_state.discriminant()
+        );
+        self.state = new_state;
     }
 }
 
