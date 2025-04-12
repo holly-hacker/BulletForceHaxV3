@@ -11,7 +11,7 @@ use std::hash::Hash;
 pub use indexmap;
 use indexmap::IndexMap;
 pub use ordered_float;
-use photon::object::PhotonObject;
+pub use photon::object::PhotonObject;
 use pun::LiftingError;
 use thiserror::Error;
 

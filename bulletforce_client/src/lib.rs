@@ -3,6 +3,8 @@ pub mod errors;
 mod utils;
 
 pub use clients::*;
+pub use photon_bulletforce;
+pub use photon_lib;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Region {

@@ -1,34 +1,26 @@
+mod cli_args;
 mod utils;
 mod websocket_client;
 
-use bulletforce_client::{LobbyConnectionSettings, LobbyState, Region};
+use bulletforce_client::{LobbyConnectionSettings, LobbyState, photon_lib::PhotonObject};
+use cli_args::CliArgs;
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::util::SubscriberInitExt;
 use utils::generate_uuid_v4;
 use websocket_client::connect_lobby;
 
 fn main() {
-    tracing_subscriber::fmt()
-        .with_max_level(if cfg!(debug_assertions) {
-            tracing::Level::DEBUG
-        } else {
-            tracing::Level::INFO
-        })
-        .finish()
-        .init();
-
-    info!("Info log enabled!");
-    debug!("Debug log enabled!");
-    trace!("Trace log enabled!");
+    let args: CliArgs = argh::from_env();
+    init_logging();
 
     let settings = LobbyConnectionSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),
-        region: Region::NorthAmerica,
+        region: args.region,
     };
 
     let mut last_game_stats = (0, 0, 0, 0);
-    connect_lobby(settings, |client| {
+    let output = connect_lobby(settings, |client| {
         match client.get_state() {
             LobbyState::ReadyNoLobby { .. } => {
                 info!("Connected to server, joining lobby");
@@ -37,8 +29,11 @@ fn main() {
                 }
             }
             LobbyState::Ready {
-                games, app_stats, ..
+                games,
+                app_stats,
+                token,
             } => {
+                // log lobby state
                 let new_game_stats = match app_stats {
                     Some(app_stats) => (
                         games.len(),
@@ -57,10 +52,55 @@ fn main() {
 
                     last_game_stats = new_game_stats;
                 }
+
+                // look for target player
+                let key = games
+                    .iter()
+                    .find(|(_k, v)| {
+                        if let Some(PhotonObject::String(players)) =
+                            v.custom_properties.get("PlayersOnline")
+                        {
+                            if players.split(',').any(|s| s == args.player_name) {
+                                return true;
+                            }
+                        }
+
+                        false
+                    })
+                    .map(|(k, _v)| k);
+
+                if let Some(key) = key {
+                    // found game to join
+                    return Some((key.clone(), token.clone()));
+                }
             }
             _ => (),
         }
 
-        None::<()>
+        None
     });
+
+    let Some((game_key, token)) = output else {
+        return;
+    };
+
+    info!(
+        "Found player {} in game {game_key}, can join with token {token}",
+        args.player_name
+    );
+}
+
+fn init_logging() {
+    tracing_subscriber::fmt()
+        .with_max_level(if cfg!(debug_assertions) {
+            tracing::Level::DEBUG
+        } else {
+            tracing::Level::INFO
+        })
+        .finish()
+        .init();
+
+    info!("Info log enabled!");
+    debug!("Debug log enabled!");
+    trace!("Trace log enabled!");
 }

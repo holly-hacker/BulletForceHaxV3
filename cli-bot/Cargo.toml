@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+argh = "0.1.13"
 bulletforce_client = { path = "../bulletforce_client" }
 fastrand = "2.3.0"
 tracing = "0.1.41"
