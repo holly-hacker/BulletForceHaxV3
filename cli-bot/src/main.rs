@@ -2,6 +2,8 @@ mod cli_args;
 mod connect_util;
 mod utils;
 
+use std::thread;
+
 use bulletforce_client::{
     lobby::{LobbyConnectionSettings, LobbyState},
     photon_lib::PhotonObject,
@@ -16,6 +18,21 @@ fn main() {
     let args: CliArgs = argh::from_env();
     init_logging();
 
+    let join_handles = (0..args.thread_count)
+        .map(|_| {
+            let args = args.clone();
+            thread::spawn(move || {
+                run_client(args);
+            })
+        })
+        .collect::<Vec<_>>();
+
+    for jh in join_handles {
+        jh.join().unwrap();
+    }
+}
+
+fn run_client(args: CliArgs) {
     let settings = LobbyConnectionSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),

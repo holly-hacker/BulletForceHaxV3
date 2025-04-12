@@ -1,7 +1,7 @@
 use argh::FromArgs;
 use bulletforce_client::Region;
 
-#[derive(FromArgs, Debug)]
+#[derive(FromArgs, Debug, Clone)]
 /// BulletForceHax v3 bot CLI
 pub struct CliArgs {
     /// the lobby region
@@ -16,6 +16,10 @@ pub struct CliArgs {
     /// the lobby to join
     #[argh(positional)]
     pub lobby_name_segment: String,
+
+    /// the amount of threads/clients to start
+    #[argh(option, short = 't', default = "1")]
+    pub thread_count: usize,
 }
 
 fn parse_region(value: &str) -> Result<Region, String> {
