@@ -1,10 +1,11 @@
 mod utils;
+mod websocket_client;
 
-use bulletforce_client::{BulletForceLobbyClient, LobbyConnectionSettings, LobbyState};
-use tracing::{debug, error, info, trace, warn};
+use bulletforce_client::{LobbyConnectionSettings, LobbyState, Region};
+use tracing::{debug, error, info, trace};
 use tracing_subscriber::util::SubscriberInitExt;
-use tungstenite::{ClientRequestBuilder, Message, http::Uri};
 use utils::generate_uuid_v4;
+use websocket_client::connect_lobby;
 
 fn main() {
     tracing_subscriber::fmt()
@@ -23,41 +24,11 @@ fn main() {
     let settings = LobbyConnectionSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),
+        region: Region::NorthAmerica,
     };
-    let mut client = BulletForceLobbyClient::create(settings);
 
-    let uri = Uri::from_static(BulletForceLobbyClient::get_lobby_server());
-    let builder =
-        ClientRequestBuilder::new(uri).with_header("Sec-WebSocket-Protocol", "GpBinaryV16");
-
-    let (mut ws_stream, _) = tungstenite::connect(builder).expect("failed to connect");
-    info!("Connected to server");
-
-    loop {
-        // send out queued messages
-        let to_send = client.take_messages_to_send();
-        if !to_send.is_empty() {
-            trace!(amount = to_send.len(), "Sending messages");
-            for item in to_send {
-                ws_stream.write(item.into()).expect("write item to stream");
-            }
-            ws_stream.flush().expect("flush stream");
-        }
-
-        // feed in incoming messages
-        let incoming_message = ws_stream.read().expect("get incoming message");
-        if let Message::Binary(bytes) = incoming_message {
-            if let Err(e) = client.handle_input(&bytes) {
-                error!("Error while handling incoming message: {e}");
-            }
-        } else {
-            warn!(
-                "Received message that was not binary: {:?}",
-                incoming_message
-            );
-        }
-
-        // run app-specific logic
+    let mut last_game_stats = (0, 0, 0, 0);
+    connect_lobby(settings, |client| {
         match client.get_state() {
             LobbyState::ReadyNoLobby { .. } => {
                 info!("Connected to server, joining lobby");
@@ -68,19 +39,28 @@ fn main() {
             LobbyState::Ready {
                 games, app_stats, ..
             } => {
-                if let Some(app_stats) = app_stats {
-                    info!(
-                        "Game count: {}, master peers: {}, peers: {}, rooms: {}",
+                let new_game_stats = match app_stats {
+                    Some(app_stats) => (
                         games.len(),
                         app_stats.master_peer_count,
                         app_stats.peer_count,
-                        app_stats.room_count
-                    )
-                } else {
-                    info!("Game count: {}", games.len());
+                        app_stats.room_count,
+                    ),
+                    None => (games.len(), 0, 0, 0),
+                };
+
+                if new_game_stats != last_game_stats {
+                    info!(
+                        "Game count: {}, master peers: {}, peers: {}, rooms: {}",
+                        new_game_stats.0, new_game_stats.1, new_game_stats.2, new_game_stats.3,
+                    );
+
+                    last_game_stats = new_game_stats;
                 }
             }
             _ => (),
         }
-    }
+
+        None::<()>
+    });
 }

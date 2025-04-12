@@ -18,6 +18,7 @@ use strum::IntoDiscriminant;
 use tracing::{debug, trace, warn};
 
 use crate::{
+    Region,
     errors::LobbyError,
     utils::{to_internal_operation_request, to_operation_request},
 };
@@ -35,9 +36,8 @@ pub struct BulletForceLobbyClient {
 }
 
 impl BulletForceLobbyClient {
-    pub fn get_lobby_server() -> &'static str {
-        // TODO: support different servers
-        "wss://game-ca-1.blayzegames.com:2053/?libversion=4.1.6.10&sid=30&app="
+    pub fn get_lobby_url(&self) -> &'static str {
+        self.settings.region.get_lobby_url()
     }
 
     pub fn create(settings: LobbyConnectionSettings) -> Self {
@@ -321,6 +321,7 @@ impl BulletForceLobbyClient {
 pub struct LobbyConnectionSettings {
     pub app_version: String,
     pub user_id: String,
+    pub region: Region,
 }
 
 #[derive(Default, strum::EnumDiscriminants)]
