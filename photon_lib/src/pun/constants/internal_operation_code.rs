@@ -1,4 +1,4 @@
-//! Codes describing different operations for [InternalOperationRequest] and [InternalOperationResponse].
+//! Codes describing different operations for internal [OperationRequest] and [OperationResponse].
 
 #[cfg(doc)]
 use crate::photon::message::{OperationRequest, OperationResponse};
