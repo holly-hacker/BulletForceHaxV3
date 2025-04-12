@@ -9,13 +9,13 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay, ... }:
+  outputs = { nixpkgs, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
-      in with pkgs; rec {
-        devShells.default = mkShell rec {
+      in with pkgs; {
+        devShells.default = mkShell {
           nativeBuildInputs = [
             nodejs_22
             (rust-bin.stable.latest.default.override {
@@ -23,6 +23,7 @@
               targets = [ "wasm32-unknown-unknown" ];
             })
             wasm-pack
+            pkg-config openssl
           ];
           buildInputs = [];
           packages = [];

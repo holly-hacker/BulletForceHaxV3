@@ -239,6 +239,7 @@ impl_u8_map_conversion! {
         client_post_data: PhotonObject,
     }
 
+    #[derive(Default)]
     AuthenticateRequest {
         /// If true, request lobby stats
         [parameter_code::LOBBY_STATS => PhotonObject::Boolean]

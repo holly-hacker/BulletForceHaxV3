@@ -1,0 +1,10 @@
+[package]
+name = "bulletforce_client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+photon_bulletforce = { path = "../photon_bulletforce" }
+photon_lib = { path = "../photon_lib" }
+strum = { version = "0.27.1", features = ["derive"] }
+tracing = "0.1.41"

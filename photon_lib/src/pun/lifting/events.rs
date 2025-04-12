@@ -209,12 +209,15 @@ impl_u8_map_conversion! {
     }
 
     AppStatsEvent {
+        @required
         [parameter_code::PEER_COUNT => PhotonObject::Integer]
         peer_count: i32,
 
+        @required
         [parameter_code::GAME_COUNT => PhotonObject::Integer]
         room_count: i32,
 
+        @required
         [parameter_code::MASTER_PEER_COUNT => PhotonObject::Integer]
         master_peer_count: i32,
     }
