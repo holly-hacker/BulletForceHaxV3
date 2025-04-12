@@ -1,26 +1,36 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    time::{Duration, Instant},
+};
 
 use photon_lib::{
     WriteError,
-    photon::message::PhotonMessage,
+    photon::message::{OperationResponse, PhotonMessage},
     pun::{
-        constants::operation_code,
+        constants::{internal_operation_code, operation_code},
         lifting::{
             AppStatsEvent, AuthenticateRequest, JoinLobbyRequest, ParseEventExt,
-            ParseOperationResponseExt, PunEvent, PunOperationResponse, RoomInfo,
+            ParseOperationResponseExt, PingRequest, PunEvent, PunOperationResponse, RoomInfo,
         },
     },
 };
 use strum::IntoDiscriminant;
 use tracing::{debug, trace, warn};
 
-use crate::{errors::LobbyError, utils::to_operation_request};
+use crate::{
+    errors::LobbyError,
+    utils::{to_internal_operation_request, to_operation_request},
+};
 
 const APP_ID: &str = "8c2cad3e-2e3f-4941-9044-b390ff2c4956";
+const PING_INTERVAL: Duration = Duration::from_secs(1);
 
 pub struct BulletForceLobbyClient {
     settings: LobbyConnectionSettings,
     state: LobbyState,
+    /// When we last received a ping response. If this is none, we sent a ping request and are
+    /// waiting for a response.
+    last_ping_received: Option<Instant>,
     buffered_messages: Vec<Vec<u8>>,
 }
 
@@ -34,6 +44,7 @@ impl BulletForceLobbyClient {
         Self {
             settings,
             state: LobbyState::default(),
+            last_ping_received: Some(Instant::now()), // cannot set minimum value
             buffered_messages: vec![],
         }
     }
@@ -42,6 +53,19 @@ impl BulletForceLobbyClient {
     pub fn handle_input(&mut self, mut data: &[u8]) -> Result<(), LobbyError> {
         let packet = PhotonMessage::from_websocket_bytes(&mut data)?;
         trace!("Received message: {packet:?}");
+
+        // early exit for pongs
+        if let PhotonMessage::InternalOperationResponse(OperationResponse {
+            operation_code: internal_operation_code::PING,
+            ..
+        }) = &packet
+        {
+            // don't parse for now, but in the future we could
+            self.last_ping_received = Some(Instant::now());
+            return Ok(());
+        }
+
+        self.queue_ping_if_needed()?;
 
         let new_state = match &mut self.state {
             LobbyState::WaitingForInitResponse => {
@@ -225,6 +249,25 @@ impl BulletForceLobbyClient {
 
     pub fn get_state(&self) -> &LobbyState {
         &self.state
+    }
+
+    pub fn queue_ping_if_needed(&mut self) -> Result<(), LobbyError> {
+        let Some(last_received) = self.last_ping_received else {
+            // a ping is already in-flight, waiting for a response
+            return Ok(());
+        };
+
+        if last_received.elapsed() > PING_INTERVAL {
+            trace!("Sending a new ping request");
+            self.enqueue_sent_message(to_internal_operation_request(
+                internal_operation_code::PING,
+                PingRequest { client_time: 0 },
+            ))?;
+
+            self.last_ping_received = None;
+        }
+
+        Ok(())
     }
 
     pub fn join_lobby(&mut self) -> Result<(), LobbyError> {

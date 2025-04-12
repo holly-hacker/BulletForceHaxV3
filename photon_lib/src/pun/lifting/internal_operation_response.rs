@@ -82,5 +82,9 @@ impl_u8_map_conversion! {
         @required
         [parameter_code::INIT_ENCRYPTION_SERVER_KEY => PhotonObject::ByteArray]
         public_key: Vec<u8>,
+
+        /// Seems to be unused
+        [parameter_code::INIT_ENCRYPTION_MODE_KEY => PhotonObject::Integer]
+        mode: i32,
     }
 }
