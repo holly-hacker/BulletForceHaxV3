@@ -1,10 +1,7 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
-import { isAnyRequest } from "../../communication";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MessageTypeString } from "../../util";
-import { DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication/to_devtools";
 
 export interface UnpackedDevtoolsMessage {
 	/** The direction the packet was going */
@@ -23,23 +20,6 @@ export interface UnpackedDevtoolsMessage {
 	hasError: boolean;
 	/** Short details or an error message */
 	detail?: string;
-}
-
-function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
-	chrome.runtime.onMessage.addListener(onMessage);
-
-	function onMessage(request: unknown, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
-		if (!isAnyRequest(request)) return;
-		// log(`incoming request from ${sender.url}`, request);
-
-		if (request.type == SEND_DEVTOOLS_MESSAGE) {
-			cb(request.data);
-		}
-
-		sendResponse(undefined);
-	}
-
-	return () => chrome.runtime.onMessage.removeListener(onMessage);
 }
 
 const columnHelper = createColumnHelper<UnpackedDevtoolsMessage>();
@@ -85,48 +65,12 @@ function getParameterTypeName(message: UnpackedDevtoolsMessage): string | null {
 	return keys[0] ? keys[0] : null;
 }
 
-export default function MessageList({ scrollRef, selectedMessage, onItemSelected }: {
+export default function MessageList({ scrollRef, messages, selectedMessage, onItemSelected }: {
 	scrollRef: React.RefObject<HTMLDivElement | null>,
+	messages: UnpackedDevtoolsMessage[],
 	selectedMessage: UnpackedDevtoolsMessage | null,
 	onItemSelected: (a: UnpackedDevtoolsMessage) => void,
 }) {
-	const [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
-
-	useEffect(() => {
-		return registerMessageHandler((msg) => {
-			let rawMessage, liftedMessage, interpretedMessage, detail, hasError = false;
-			try {
-				detail = msg.detail;
-				hasError = msg.hasError;
-
-				// ops that can error, in order of dependency
-				rawMessage = JSON.parse(msg.rawMessage) as object;
-				liftedMessage = msg.liftedMessage ? JSON.parse(msg.liftedMessage) as object : undefined;
-				interpretedMessage = msg.interpretedMessage ? JSON.parse(msg.interpretedMessage) as object : undefined;
-			} catch (e) {
-				if (!e)
-					detail = undefined;
-				else if (e instanceof Error)
-					detail = e.name;
-				else if (typeof e === 'string')
-					detail = e;
-				else
-					detail = JSON.stringify(e);
-			}
-			const unpackedMessage: UnpackedDevtoolsMessage = {
-				direction: msg.direction,
-				socketType: msg.socketType,
-				messageType: msg.messageType,
-				rawMessage,
-				liftedMessage,
-				interpretedMessage,
-				detail,
-				hasError: hasError,
-			};
-			setMessages(prevMessages => [...prevMessages, unpackedMessage]);
-		});
-	}, []);
-
 	const virtualizer = useVirtualizer({
 		count: messages.length,
 		getScrollElement: () => scrollRef.current,
