@@ -8,7 +8,7 @@ edition = "2024"
 [dependencies]
 bytes = "1.10.0"
 indexmap = { version = "2.7.1", features = ["serde"] }
-ordered-float = { version = "4.6.0", features = ["serde"] }
+ordered-float = { version = "5.0.0", features = ["serde"] }
 paste = "1.0.15"
 serde = { version = "1.0.217", features = ["derive"] }
 strum = { version = "0.27.1", features = ["derive"] }
