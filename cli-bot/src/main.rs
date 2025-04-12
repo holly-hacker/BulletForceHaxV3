@@ -29,9 +29,7 @@ fn main() {
                 }
             }
             LobbyState::Ready {
-                games,
-                app_stats,
-                token,
+                games, app_stats, ..
             } => {
                 // log lobby state
                 let new_game_stats = match app_stats {
@@ -71,8 +69,20 @@ fn main() {
 
                 if let Some(key) = key {
                     // found game to join
-                    return Some((key.clone(), token.clone()));
+                    if let Err(e) = client.join_game(key.clone()) {
+                        error!("Error while trying to join game: {e}");
+                    }
                 }
+            }
+            LobbyState::ReadyToJoinGame {
+                token,
+                room_name,
+                address,
+            } => {
+                let token = token.clone();
+                let room_name = room_name.clone();
+                let address = address.clone();
+                return Some((token, room_name, address));
             }
             _ => (),
         }
@@ -80,12 +90,12 @@ fn main() {
         None
     });
 
-    let Some((game_key, token)) = output else {
+    let Some((token, room_name, address)) = output else {
         return;
     };
 
     info!(
-        "Found player {} in game {game_key}, can join with token {token}",
+        "Found player {} in game {room_name}, can join at address {address} with token {token}",
         args.player_name
     );
 }

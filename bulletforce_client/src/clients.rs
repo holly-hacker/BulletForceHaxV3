@@ -9,7 +9,7 @@ use photon_lib::{
     pun::{
         constants::{internal_operation_code, operation_code},
         lifting::{
-            AppStatsEvent, AuthenticateRequest, JoinLobbyRequest, ParseEventExt,
+            AppStatsEvent, AuthenticateRequest, JoinGameRequest, JoinLobbyRequest, ParseEventExt,
             ParseOperationResponseExt, PingRequest, PunEvent, PunOperationResponse, RoomInfo,
         },
     },
@@ -67,7 +67,7 @@ impl BulletForceLobbyClient {
 
         self.queue_ping_if_needed()?;
 
-        let new_state = match &mut self.state {
+        match &mut self.state {
             LobbyState::WaitingForInitResponse => {
                 if let PhotonMessage::InitResponse = packet {
                     debug!("Received lobby InitResponse");
@@ -83,12 +83,11 @@ impl BulletForceLobbyClient {
                             ..Default::default()
                         },
                     ))?;
-                    Some(LobbyState::WaitingForAuthResponse { app_stats: None })
+                    self.set_new_state(LobbyState::WaitingForAuthResponse { app_stats: None })
                 } else {
                     warn!(
                         "Expected first packte to be InitResponse, got something else: {packet:?}"
                     );
-                    None
                 }
             }
             LobbyState::WaitingForAuthResponse { app_stats } => match packet {
@@ -110,16 +109,13 @@ impl BulletForceLobbyClient {
                                     )
                                 })?;
 
-                            Some(LobbyState::ReadyNoLobby {
-                                token,
-                                app_stats: app_stats.clone(),
-                            })
+                            let app_stats = app_stats.clone();
+                            self.set_new_state(LobbyState::ReadyNoLobby { token, app_stats })
                         }
                         _ => {
                             warn!(
                                 "Unexpected operation response in WaitingForAuthResponse: {response:?}"
                             );
-                            None
                         }
                     }
                 }
@@ -133,11 +129,9 @@ impl BulletForceLobbyClient {
                             warn!("Unexpected event in WaitingForAuthResponse: {event_data:?}");
                         }
                     }
-                    None
                 }
                 packet => {
                     warn!("Unexpected message type in WaitingForAuthResponse phase: {packet:?}");
-                    None
                 }
             },
             LobbyState::ReadyNoLobby { app_stats, .. } => match packet {
@@ -146,17 +140,14 @@ impl BulletForceLobbyClient {
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
-                            None
                         }
                         _ => {
                             warn!("Unexpected event in WaitingForAuthResponse: {event_data:?}");
-                            None
                         }
                     }
                 }
                 _ => {
                     warn!("Unexpected message type in WaitingForAuthResponse phase: {packet:?}");
-                    None
                 }
             },
             LobbyState::JoiningLobby { app_stats, token } => match packet {
@@ -166,9 +157,11 @@ impl BulletForceLobbyClient {
                         PunOperationResponse::JoinLobby(_join_lobby) => {
                             debug!("Received lobby JoinLobby");
 
-                            Some(LobbyState::Ready {
-                                token: token.clone(),
-                                app_stats: app_stats.clone(),
+                            let token = token.clone();
+                            let app_stats = app_stats.clone();
+                            self.set_new_state(LobbyState::Ready {
+                                token,
+                                app_stats,
                                 games: HashMap::new(),
                             })
                         }
@@ -176,7 +169,6 @@ impl BulletForceLobbyClient {
                             warn!(
                                 "Unexpected operation response in WaitingForAuthResponse: {response:?}"
                             );
-                            None
                         }
                     }
                 }
@@ -185,17 +177,14 @@ impl BulletForceLobbyClient {
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
-                            None
                         }
                         _ => {
                             warn!("Unexpected event in WaitingForAuthResponse: {event_data:?}");
-                            None
                         }
                     }
                 }
                 packet => {
                     warn!("Unexpected message type in WaitingForAuthResponse phase: {packet:?}");
-                    None
                 }
             },
             LobbyState::Ready {
@@ -206,11 +195,9 @@ impl BulletForceLobbyClient {
                     match event_data {
                         PunEvent::AppStats(new_app_stats) => {
                             *app_stats = Some(*new_app_stats.clone());
-                            None
                         }
                         PunEvent::GameList(game_list) => {
                             *games = game_list.games.into_iter().collect();
-                            None
                         }
                         PunEvent::GameListUpdate(game_list) => {
                             for (key, game) in game_list.games.into_iter() {
@@ -220,23 +207,47 @@ impl BulletForceLobbyClient {
                                     games.insert(key, game);
                                 }
                             }
-                            None
                         }
                         _ => {
                             warn!("Unexpected event in WaitingForAuthResponse: {event_data:?}");
-                            None
                         }
                     }
                 }
                 packet => {
                     warn!("Unexpected message type in WaitingForAuthResponse phase: {packet:?}");
-                    None
                 }
             },
-        };
+            LobbyState::JoiningGame { token, room_name } => {
+                match packet {
+                    PhotonMessage::OperationResponse(op_resp) => {
+                        let (op_resp, _, _) = op_resp.parse()?;
 
-        if let Some(new_state) = new_state {
-            self.set_new_state(new_state);
+                        if let PunOperationResponse::JoinGame(join_game) = op_resp {
+                            let Some(address) = join_game.address else {
+                                return Err(LobbyError::Other(
+                                    "JoinGame response did not contain an address!".into(),
+                                ));
+                            };
+
+                            let token = token.clone();
+                            let room_name = room_name.clone();
+                            self.set_new_state(LobbyState::ReadyToJoinGame {
+                                token,
+                                room_name,
+                                address,
+                            });
+                        }
+                    }
+                    _ => {
+                        // do nothing
+                        trace!("Discarding incoming message because we're joining a game");
+                    }
+                }
+            }
+            LobbyState::ReadyToJoinGame { .. } => {
+                // don't do anything, the user is meant to take over at this point
+                trace!("Discarding incoming message because we're ready to join a game");
+            }
         }
 
         Ok(())
@@ -298,6 +309,38 @@ impl BulletForceLobbyClient {
         ))?;
 
         self.set_new_state(LobbyState::JoiningLobby { token, app_stats });
+
+        Ok(())
+    }
+
+    pub fn join_game(&mut self, room_name: String) -> Result<(), LobbyError> {
+        let token = match std::mem::take(&mut self.state) {
+            LobbyState::Ready { token, .. } => token,
+            state => {
+                // restore state
+                self.state = state;
+                return Err(LobbyError::Other(
+                    format!(
+                        "state should be {:?} when joining game, was {:?}",
+                        LobbyStateDiscriminants::ReadyNoLobby,
+                        self.state.discriminant(),
+                    )
+                    .into(),
+                ));
+            }
+        };
+
+        debug!("Sending join game request");
+        self.enqueue_sent_message(to_operation_request(
+            operation_code::JOIN_GAME,
+            JoinGameRequest {
+                room_name: Some(room_name.clone()),
+                ..Default::default()
+            },
+        ))?;
+
+        self.set_new_state(LobbyState::JoiningGame { token, room_name });
+
         Ok(())
     }
 
@@ -310,9 +353,9 @@ impl BulletForceLobbyClient {
 
     fn set_new_state(&mut self, new_state: LobbyState) {
         debug!(
-            "Lobby state {:?} ➜ {:?}",
-            self.state.discriminant(),
-            new_state.discriminant()
+            old_state = format!("{:?}", self.state.discriminant()),
+            new_state = format!("{:?}", new_state.discriminant()),
+            "Lobby state changed",
         );
         self.state = new_state;
     }
@@ -343,5 +386,14 @@ pub enum LobbyState {
         token: String,
         app_stats: Option<AppStatsEvent>,
         games: HashMap<String, RoomInfo>,
+    },
+    JoiningGame {
+        token: String,
+        room_name: String,
+    },
+    ReadyToJoinGame {
+        token: String,
+        room_name: String,
+        address: String,
     },
 }

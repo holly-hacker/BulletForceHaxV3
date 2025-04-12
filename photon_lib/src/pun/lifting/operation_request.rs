@@ -340,6 +340,7 @@ impl_u8_map_conversion! {
         flags: i32,
     }
 
+    #[derive(Default)]
     JoinGameRequest {
         [parameter_code::ROOM_NAME => PhotonObject::String]
         room_name: String,
