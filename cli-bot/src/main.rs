@@ -52,8 +52,27 @@ fn main() {
         }
 
         // run app-specific logic
-        if let LobbyState::ReadyNoLobby { .. } = client.get_state() {
-            client.join_lobby();
+        match client.get_state() {
+            LobbyState::ReadyNoLobby { .. } => {
+                info!("Connected to server, joining lobby");
+                client.join_lobby();
+            }
+            LobbyState::Ready {
+                games, app_stats, ..
+            } => {
+                if let Some(app_stats) = app_stats {
+                    info!(
+                        "Game count: {}, master peers: {}, peers: {}, rooms: {}",
+                        games.len(),
+                        app_stats.master_peer_count,
+                        app_stats.peer_count,
+                        app_stats.room_count
+                    )
+                } else {
+                    info!("Game count: {}", games.len());
+                }
+            }
+            _ => (),
         }
     }
 }

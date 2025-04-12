@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use photon_lib::{
     photon::message::PhotonMessage,
     pun::{
         constants::operation_code,
         lifting::{
             AppStatsEvent, AuthenticateRequest, JoinLobbyRequest, ParseEventExt,
-            ParseOperationResponseExt, PunEvent, PunOperationResponse,
+            ParseOperationResponseExt, PunEvent, PunOperationResponse, RoomInfo,
         },
     },
 };
@@ -136,6 +138,7 @@ impl BulletForceLobbyClient {
                             Some(LobbyState::Ready {
                                 token: token.clone(),
                                 app_stats: app_stats.clone(),
+                                games: HashMap::new(),
                             })
                         }
                         _ => {
@@ -164,10 +167,41 @@ impl BulletForceLobbyClient {
                     None
                 }
             },
-            LobbyState::Ready { .. } => {
-                debug!("Received packet in Ready state");
-                None
-            }
+            LobbyState::Ready {
+                app_stats, games, ..
+            } => match packet {
+                PhotonMessage::EventData(event_data) => {
+                    let event_data = event_data.parse().unwrap();
+                    match event_data {
+                        PunEvent::AppStats(new_app_stats) => {
+                            *app_stats = Some(*new_app_stats.clone());
+                            None
+                        }
+                        PunEvent::GameList(game_list) => {
+                            *games = game_list.games.into_iter().collect();
+                            None
+                        }
+                        PunEvent::GameListUpdate(game_list) => {
+                            for (key, game) in game_list.games.into_iter() {
+                                if game.removed == Some(true) {
+                                    games.remove(&key);
+                                } else {
+                                    games.insert(key, game);
+                                }
+                            }
+                            None
+                        }
+                        _ => {
+                            warn!("Unexpected event in WaitingForAuthResponse: {event_data:?}");
+                            None
+                        }
+                    }
+                }
+                packet => {
+                    warn!("Unexpected message type in WaitingForAuthResponse phase: {packet:?}");
+                    None
+                }
+            },
         };
 
         if let Some(new_state) = new_state {
@@ -242,5 +276,6 @@ pub enum LobbyState {
     Ready {
         token: String,
         app_stats: Option<AppStatsEvent>,
+        games: HashMap<String, RoomInfo>,
     },
 }
