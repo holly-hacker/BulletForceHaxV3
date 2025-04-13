@@ -2,6 +2,9 @@
 
 BulletForceHaxv3 (BFHv3) is the third iteration of my attempt at writing tooling and cheats for a Unity WebAssembly game.
 
+> [!NOTE]
+> The goal here is not to make progress as quick as possible and make a generic cheat. Instead, I want to do things "right" and make something that is easy to work with, extensible and maintainable. That means spending time creating proper abstractions and tooling, instead of hacking together the first thing that works.
+
 ## Comparison to previous iterations
 
 - [BulletForceHax](https://github.com/holly-hacker/bulletforcehax): "An in-browser cheating/sniffing tool for Bullet Force"
@@ -15,7 +18,7 @@ BulletForceHaxv3 (BFHv3) is the third iteration of my attempt at writing tooling
   - Contained a native app that would host a WebView with the game and would automatically download the required game files, resulting in a fully self-contained experience
   - Contained a fairly solid networking library that could in theory be used by other projects
   - Used egui to provide a configuration UI
-- BulletForceHaxv3: You are here
+- [BulletForceHaxv3](https://github.com/holly-hacker/bulletforcehaxv3): You are here
   - Written in Typescript and Rust
   - Packaged as a MV3 browser extension that can be loaded by any(?) modern browser
   - Forks BulletForceHaxV2's networking library, further improving it
