@@ -1,6 +1,6 @@
 use std::str::FromStr as _;
 
-use bulletforce_client::{ClientImpl, ClientWrapper};
+use bulletforce_client::{ClientImpl, Client};
 use tracing::{debug, error, info, trace, warn};
 use tungstenite::{ClientRequestBuilder, Message, http::Uri};
 
@@ -9,9 +9,9 @@ pub fn drive_client_loop<TClient: ClientImpl, TResp, F>(
     mut callback: F,
 ) -> Option<TResp>
 where
-    F: FnMut(&mut ClientWrapper<TClient>) -> Option<TResp>,
+    F: FnMut(&mut Client<TClient>) -> Option<TResp>,
 {
-    let mut client = ClientWrapper::<TClient>::create(settings);
+    let mut client = Client::<TClient>::create(settings);
 
     let uri = match client.get_url() {
         std::borrow::Cow::Borrowed(str) => Uri::from_static(str),
@@ -35,16 +35,32 @@ where
         }
 
         // feed in incoming messages
-        let incoming_message = ws_stream.read().expect("get incoming message");
-        if let Message::Binary(bytes) = incoming_message {
-            if let Err(e) = client.handle_input(&bytes) {
-                error!("Error while handling incoming message: {e}");
+        let incoming_message = match ws_stream.read() {
+            Ok(msg) => msg,
+            Err(tungstenite::Error::ConnectionClosed) => {
+                info!("WebSocket connection was closed by remote");
+                break;
             }
-        } else {
-            warn!(
-                "Received message that was not binary: {:?}",
-                incoming_message
-            );
+            Err(e) => {
+                panic!("Unexpected error in ws stream: {e}");
+            }
+        };
+        match incoming_message {
+            Message::Binary(bytes) => {
+                if let Err(e) = client.handle_input(&bytes) {
+                    error!("Error while handling incoming message: {e}");
+                }
+            }
+            Message::Close(frame) => {
+                info!("WebSocket connection received close frame: {frame:?}");
+                break;
+            }
+            _ => {
+                warn!(
+                    "Received message that was not binary: {:?}",
+                    incoming_message
+                );
+            }
         }
 
         // run client logic
@@ -53,4 +69,6 @@ where
             return Some(ret);
         }
     }
+
+    None
 }

@@ -5,8 +5,9 @@ use photon_lib::{
     pun::{
         constants::operation_code,
         lifting::{
-            AppStatsEvent, AuthenticateRequest, JoinGameRequest, JoinLobbyRequest, ParseEventExt,
-            ParseOperationResponseExt, PunEvent, PunOperationResponse, RoomInfo,
+            AppStatsEvent, AuthenticateRequest, JoinGameRequest, JoinLobbyRequest,
+            ParseEventExt as _, ParseOperationResponseExt as _, PunEvent, PunOperationResponse,
+            RoomInfo,
         },
     },
 };
@@ -15,7 +16,7 @@ use tracing::{debug, trace, warn};
 
 use crate::{Region, errors::HandlerError, utils::to_operation_request};
 
-use super::{ClientContext, ClientImpl, ClientWrapper};
+use super::{Client, ClientContext, ClientImpl};
 
 const APP_ID: &str = "8c2cad3e-2e3f-4941-9044-b390ff2c4956";
 
@@ -23,7 +24,7 @@ const APP_ID: &str = "8c2cad3e-2e3f-4941-9044-b390ff2c4956";
 pub struct LobbyClient;
 
 impl ClientImpl for LobbyClient {
-    type Settings = LobbyConnectionSettings;
+    type Settings = LobbyClientSettings;
     type State = LobbyState;
 
     fn get_url(&self, ctx: &ClientContext<Self>) -> Cow<'static, str> {
@@ -224,7 +225,7 @@ impl ClientImpl for LobbyClient {
     }
 }
 
-impl ClientWrapper<LobbyClient> {
+impl Client<LobbyClient> {
     pub fn join_lobby(&mut self) -> Result<(), HandlerError> {
         // funky take/match combo to avoid clone.
         let (app_stats, token) = match std::mem::take(&mut self.context.state) {
@@ -291,7 +292,7 @@ impl ClientWrapper<LobbyClient> {
     }
 }
 
-pub struct LobbyConnectionSettings {
+pub struct LobbyClientSettings {
     pub app_version: String,
     pub user_id: String,
     pub region: Region,

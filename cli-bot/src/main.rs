@@ -5,7 +5,8 @@ mod utils;
 use std::thread;
 
 use bulletforce_client::{
-    lobby::{LobbyConnectionSettings, LobbyState},
+    game::{GameClient, GameClientSettings, GameState},
+    lobby::{LobbyClientSettings, LobbyState},
     photon_lib::PhotonObject,
 };
 use cli_args::CliArgs;
@@ -33,14 +34,14 @@ fn main() {
 }
 
 fn run_client(args: CliArgs) {
-    let settings = LobbyConnectionSettings {
+    let settings = LobbyClientSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),
         region: args.region,
     };
 
     let mut last_game_stats = (0, 0, 0, 0);
-    let match_info = drive_client_loop(settings, |client| {
+    let game_client_settings = drive_client_loop(settings, |client| {
         match client.get_state() {
             LobbyState::ReadyNoLobby { .. } => {
                 info!("Connected to server, joining lobby");
@@ -124,7 +125,11 @@ fn run_client(args: CliArgs) {
                 room_name,
                 address,
             } => {
-                return Some((token.clone(), room_name.clone(), address.clone()));
+                return Some(GameClientSettings {
+                    token: token.clone(),
+                    room_name: room_name.clone(),
+                    address: address.clone(),
+                });
             }
             _ => (),
         }
@@ -132,14 +137,29 @@ fn run_client(args: CliArgs) {
         None
     });
 
-    let Some((token, room_name, address)) = match_info else {
+    let Some(game_client_settings) = game_client_settings else {
         return;
     };
 
     info!(
-        "Found lobby named '{}' in game {room_name}, can join at address {address} with token {token}",
-        args.lobby_name_segment
+        "Found lobby named '{}' in game {}, can join at address {} with token {}",
+        args.lobby_name_segment,
+        game_client_settings.room_name,
+        game_client_settings.address,
+        game_client_settings.token,
     );
+
+    drive_client_loop::<GameClient, _, _>(game_client_settings, |client| {
+        #[allow(clippy::single_match)]
+        match client.get_state() {
+            GameState::Ready { .. } => {
+                // TODO
+            }
+            _ => {}
+        }
+
+        None::<()>
+    });
 }
 
 fn init_logging() {

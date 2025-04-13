@@ -28,7 +28,7 @@ pub(crate) use check_remaining;
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PhotonHashmap(#[serde(with = "hashmap_serde")] IndexMap<PhotonObject, PhotonObject>);
+pub struct PhotonHashmap(#[serde(with = "hashmap_serde")] pub IndexMap<PhotonObject, PhotonObject>);
 
 impl std::hash::Hash for PhotonHashmap {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -69,7 +69,9 @@ impl<K: Into<PhotonObject>, V: Into<PhotonObject>> From<IndexMap<K, V>> for Phot
 
 /// A newtype for a hashmap containing photon-serialized objects
 #[derive(Debug, Default, PartialEq, Eq, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PhotonDictionary(#[serde(with = "hashmap_serde")] IndexMap<PhotonObject, PhotonObject>);
+pub struct PhotonDictionary(
+    #[serde(with = "hashmap_serde")] pub IndexMap<PhotonObject, PhotonObject>,
+);
 
 impl std::hash::Hash for PhotonDictionary {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -79,7 +81,7 @@ impl std::hash::Hash for PhotonDictionary {
 
 /// A newtype for the parameter hashmap used in photon messages.
 #[derive(Debug, Default, PartialEq, Eq, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ParameterMap(IndexMap<u8, PhotonObject>);
+pub struct ParameterMap(pub IndexMap<u8, PhotonObject>);
 
 impl std::hash::Hash for ParameterMap {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -88,7 +90,7 @@ impl std::hash::Hash for ParameterMap {
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Hash, serde::Serialize, serde::Deserialize)]
-pub struct PhotonArray(Vec<PhotonObject>);
+pub struct PhotonArray(pub Vec<PhotonObject>);
 
 impl From<Vec<PhotonObject>> for PhotonArray {
     fn from(value: Vec<PhotonObject>) -> Self {
@@ -103,7 +105,7 @@ impl From<PhotonArray> for Vec<PhotonObject> {
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Hash, serde::Serialize, serde::Deserialize)]
-pub struct PhotonObjectArray(Vec<PhotonObject>);
+pub struct PhotonObjectArray(pub Vec<PhotonObject>);
 
 impl From<Vec<PhotonObject>> for PhotonObjectArray {
     fn from(value: Vec<PhotonObject>) -> Self {

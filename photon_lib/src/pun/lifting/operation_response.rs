@@ -1,3 +1,5 @@
+use indexmap::IndexMap;
+
 use crate::{
     PhotonArray, PhotonHashmap,
     photon::{
@@ -7,7 +9,7 @@ use crate::{
     pun::{LiftingError, constants::*},
 };
 
-use super::EmptyResponse;
+use super::{ActorInfo, EmptyResponse, RoomInfo};
 
 pub trait ParseOperationResponseExt {
     fn parse(self) -> Result<(PunOperationResponse, i16, Option<String>), LiftingError>;
@@ -162,14 +164,16 @@ impl_u8_map_conversion! {
         [parameter_code::ACTOR_NR => PhotonObject::Integer]
         actor_nr: i32, // for GameServer
 
+        /// List of integers
         [parameter_code::ACTOR_LIST => PhotonObject::Array]
         actor_list: PhotonArray, // for GameServer
 
+        /// Map of actor id (Integer) to ActorInfo. Not present in lobby
         [parameter_code::PLAYER_PROPERTIES => PhotonObject::Hashtable]
-        player_properties: PhotonHashmap, // for GameServer, TODO: parse (ReadoutProperties)
+        player_properties: IndexMap<PhotonObject, ActorInfo>, // for GameServer
 
         [parameter_code::GAME_PROPERTIES => PhotonObject::Hashtable]
-        game_properties: PhotonHashmap, // for GameServer, TODO: parse (ReadoutProperties)
+        game_properties: RoomInfo, // for GameServer
 
         [parameter_code::ROOM_OPTION_FLAGS => PhotonObject::Integer]
         flags: i32, // for GameServer

@@ -9,6 +9,8 @@ use crate::{
     pun::{LiftingError, ViewId, constants::*},
 };
 
+use super::RoomInfo;
+
 pub trait ParseEventExt {
     fn parse(self) -> Result<PunEvent, LiftingError>;
 }
@@ -308,7 +310,7 @@ impl_u8_map_conversion! {
         [parameter_code::ACTOR_NR => PhotonObject::Integer]
         sender_actor: i32,
 
-        @required
+        /// For some reason, this is not required
         [parameter_code::DATA => PhotonObject::Hashtable]
         data: InstantiationEventData,
     }
@@ -325,53 +327,6 @@ impl_u8_map_conversion! {
 }
 
 impl_photon_map_conversion! {
-    /// Describes a room.
-    #[derive(PartialEq, Eq)]
-    RoomInfo {
-        /// If `true`, this game should be removed from the game list in the lobby. Not used during gameplay.
-        [PhotonObject::Byte(game_property_key::REMOVED) => PhotonObject::Boolean]
-        removed: bool,
-
-        /// Indicates how many players can be in this room. 0 means no limit.
-        [PhotonObject::Byte(game_property_key::MAX_PLAYERS) => PhotonObject::Byte]
-        max_players: u8,
-
-        /// Indicates if the room can be joined.
-        [PhotonObject::Byte(game_property_key::IS_OPEN) => PhotonObject::Boolean]
-        is_open: bool,
-
-        /// Indicates if this room should be shown in the lobby. Invisible rooms can still be joined.
-        [PhotonObject::Byte(game_property_key::IS_VISIBLE) => PhotonObject::Boolean]
-        is_visible: bool,
-
-        [PhotonObject::Byte(game_property_key::PLAYER_COUNT) => PhotonObject::Byte]
-        player_count: u8,
-
-        [PhotonObject::Byte(game_property_key::CLEANUP_CACHE_ON_LEAVE) => PhotonObject::Boolean]
-        cleanup_cache_on_leave: bool,
-
-        /// The actor id of the master client.
-        [PhotonObject::Byte(game_property_key::MASTER_CLIENT_ID) => PhotonObject::Integer]
-        master_client_id: i32,
-
-        [PhotonObject::Byte(game_property_key::PROPS_LISTED_IN_LOBBY) => PhotonObject::StringArray]
-        props_listed_in_lobby: Vec<String>,
-
-        /// Instructs the server to keep player slots open for these players.
-        [PhotonObject::Byte(game_property_key::EXPECTED_USERS) => PhotonObject::StringArray]
-        expected_users: Vec<String>,
-
-        /// How long the room stays alive after the last player left.
-        ///
-        /// See also [RoomInfo::player_ttl].
-        [PhotonObject::Byte(game_property_key::EMPTY_ROOM_TTL) => PhotonObject::Integer]
-        empty_room_ttl: i32,
-
-        /// How long a player stays "active" after disconnecting. As long as this time has not passed, their slot stays occupied.
-        [PhotonObject::Byte(game_property_key::PLAYER_TTL) => PhotonObject::Integer]
-        player_ttl: i32,
-    }
-
     /// Event data from [DestroyEvent].
     DestroyEventData {
         @required
@@ -448,6 +403,7 @@ impl_photon_map_conversion! {
 /// A serialized object stream. Can represent a `Monobehavior`, a `Transform`, a `Rigidbody` or a `RigidBody2D`.
 ///
 /// See [SendSerializeEvent].
+#[derive(Debug)]
 pub struct SerializedData {
     pub view_id: i32,
     pub data_stream: Vec<PhotonObject>,
@@ -461,7 +417,7 @@ impl SendSerializeEvent {
     }
 
     pub fn parse_serialized_data(data: &PhotonHashmap) -> Option<Vec<SerializedData>> {
-        _ = data.0.get(&PhotonObject::Byte(1))?;
+        _ = data.0.get(&PhotonObject::Byte(1))?; // Short, seems to be value 0
 
         let header_len = match data.0.contains_key(&PhotonObject::Byte(1)) {
             true => 2,
@@ -525,9 +481,9 @@ mod tests {
     use indexmap::indexmap;
     use ordered_float::OrderedFloat;
 
-    use super::RoomInfo;
     use crate::photon::object::PhotonObject;
     use crate::pun::constants::game_property_key;
+    use crate::pun::lifting::RoomInfo;
 
     #[test]
     fn room_info() {

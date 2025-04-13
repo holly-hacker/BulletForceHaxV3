@@ -12,6 +12,7 @@ use tracing::{debug, trace};
 
 use crate::{errors::HandlerError, utils::to_internal_operation_request};
 
+pub mod game;
 pub mod lobby;
 
 const PING_INTERVAL: Duration = Duration::from_secs(1);
@@ -34,7 +35,7 @@ pub struct ClientContext<T: ClientImpl> {
     pub state: T::State,
     pub settings: T::Settings,
 
-    pub queued_messages: Vec<Vec<u8>>,
+    queued_messages: Vec<Vec<u8>>,
 }
 
 impl<T: ClientImpl> ClientContext<T> {
@@ -58,7 +59,8 @@ impl<T: ClientImpl> ClientContext<T> {
     }
 }
 
-pub struct ClientWrapper<T: ClientImpl> {
+/// Represents a client that can handle connections to/from the server.
+pub struct Client<T: ClientImpl> {
     /// The underlying client implementation
     client: T,
 
@@ -70,7 +72,7 @@ pub struct ClientWrapper<T: ClientImpl> {
     last_ping_received: Option<Instant>,
 }
 
-impl<T: ClientImpl> ClientWrapper<T> {
+impl<T: ClientImpl> Client<T> {
     pub fn create(settings: T::Settings) -> Self {
         Self {
             client: T::default(),
