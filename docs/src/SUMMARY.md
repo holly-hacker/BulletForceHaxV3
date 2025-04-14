@@ -13,6 +13,8 @@
   - [Account system]()
 - [PUN]()
   - [RPC]()
+- [Reverse Engineering]()
+  - [Getting copies of game files](./BulletForceInternal/ReverseEngineering/GettingGameFiles.md)
 
 # BulletForceHax
 
