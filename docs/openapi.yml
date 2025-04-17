@@ -1,0 +1,54 @@
+openapi: 3.1.1
+info:
+  title: Bullet Force
+  summary: "Bullet Force internal API"
+  description: This OpenAPI definition describes the internal Bullet Force API.
+  contact:
+    name: Variant9
+    url: https://github.com/holly-hacker/bulletforcehaxv3
+  # TODO: license
+  version: 1.0.0
+servers:
+  - url: https://server.blayzegames.com
+tags:
+  - name: OnlineAccountSystem
+    description: "APIs related to accounts"
+paths:
+  /OnlineAccountSystem/get_multiplayer_auth_code.php:
+    post:
+      tags:
+        - OnlineAccountSystem
+      summary: Get a code to authenticate a user in a match
+      description: |-
+        Returns an authentication code that should be sent using the [RpcSendMultiplayerAuthToken](https://variant9.dev/BulletForceHaxV3/BulletForceInternal/PUN/ListOfRpcCalls.html#RpcSendMultiplayerAuthToken) RPC call.
+      operationId: getMultiplayerAuthCode
+      requestBody:
+        description: The content contains the user's username and hashed password.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                username:
+                  type: string
+                  description: The player's username
+                password:
+                  type: string
+                  description: The player's password, hashed using SHA512 and encoded as hexadecimal. Bullet Force uses uppercase hex here.
+                  format: password
+                  pattern: "[a-fA-F0-9]{128}"
+            example: 'username=PC-MyUsername&password=B109F3BBBC244EB82441917ED06D618B9008DD09B3BEFD1B5E07394C706A8BB980B1D7785E5976EC049B46DF5F1326AF5A2EA6D103FD07C95385FFAB0CACBC86'
+      responses:
+        '200':
+          description: This request always returns 200, regardless of success.
+          content:
+            text/html:
+              examples:
+                success:
+                  description: "Success response, containing a hex-encoded token"
+                  value: "12345678abcde"
+                error:
+                  description: "Error response, containing an empty string"
+                  value: ""
+externalDocs:
+  url: https://variant9.dev/BulletForceHaxV3/
