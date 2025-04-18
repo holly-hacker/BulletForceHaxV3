@@ -19,10 +19,6 @@ tags:
   - name: Chat
     description: API calls related to lobby chat
 paths:
-  # Account
-  /login.php:
-    post:
-      tags: ["Account"]
   /get_multiplayer_auth_code.php:
     post:
       summary: Get a code to authenticate a user in a match
@@ -89,7 +85,7 @@ paths:
         "200":
           description: |-
             Contains JSON-encoded messages and some metadata.
-            
+
             Note that the content type is `text/html`, but the content is encoded as JSON.
           content:
             text/html: # BF does not set correct content type headers
@@ -113,6 +109,7 @@ paths:
       summary: Send a chat message
       description: |-
         Used to send a chat message. Returns a list of the new chat messages in response.
+      operationId: sendLobbyChatV2
       tags: ["Chat"]
       requestBody:
         required: true
@@ -143,7 +140,7 @@ paths:
         "200":
           description: |-
             Contains JSON-encoded messages, including the newly sent message.
-            
+
             Note that the content type is `text/html`, but the content is encoded as JSON.
           content:
             text/html: # BF does not set correct content type headers
@@ -155,26 +152,6 @@ paths:
                     maxItems: 50
                     items:
                       $ref: "#/components/schemas/ChatMessage"
-  /get_lobby_chat.php:
-    post:
-      deprecated: true
-      summary: Fetch in-game lobby chat (old API)
-      tags: ["Chat"]
-  # Other
-  /download_scriptableV2.php:
-    post: {}
-  /get_weapon_stats.php:
-    post: {}
-  /get_user_badge.php:
-    post: {}
-  /set_webgl_platform.php:
-    post: {}
-  /checkForSeasonPrize.php:
-    post: {}
-  /get-account-rolesV2.php:
-    post: {}
-  /checkifoverpowered.php:
-    post: {}
 components:
   schemas:
     UserName:
@@ -183,7 +160,7 @@ components:
       example: "PC-Username"
     UserPassword:
       type: string
-      description: The player's password
+      description: The player's password hashed with SHA512, encoded as uppercase hexadecimal.
       example: "B109F3BBBC244EB82441917ED06D618B9008DD09B3BEFD1B5E07394C706A8BB980B1D7785E5976EC049B46DF5F1326AF5A2EA6D103FD07C95385FFAB0CACBC86"
     ChatMessage:
       type: object
