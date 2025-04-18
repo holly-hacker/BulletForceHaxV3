@@ -1,0 +1,205 @@
+openapi: 3.1.1
+info:
+  title: Bullet Force
+  summary: "Bullet Force internal API"
+  description: |-
+    This OpenAPI definition describes the internal Bullet Force API.
+
+    Note that this is a best-effort replication of the API. It may be inaccurate or incomplete.
+  contact:
+    name: Variant9
+    url: https://github.com/holly-hacker/bulletforcehaxv3
+  # TODO: license
+  version: 1.0.0
+servers:
+  - url: https://server.blayzegames.com/OnlineAccountSystem
+tags:
+  - name: Account
+    description: API calls related to accounts and authentication
+  - name: Chat
+    description: API calls related to lobby chat
+paths:
+  # Account
+  /login.php:
+    post:
+      tags: ["Account"]
+  /get_multiplayer_auth_code.php:
+    post:
+      summary: Get a code to authenticate a user in a match
+      description: |-
+        Returns an authentication code that should be sent using the [RpcSendMultiplayerAuthToken](https://variant9.dev/BulletForceHaxV3/BulletForceInternal/PUN/ListOfRpcCalls.html#RpcSendMultiplayerAuthToken) RPC call.
+
+        This token is only valid until a new token is generated.
+      operationId: getMultiplayerAuthCode
+      tags: ["Account"]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  $ref: "#/components/schemas/UserName"
+                password:
+                  $ref: "#/components/schemas/UserPassword"
+      responses:
+        "200":
+          description: This request always returns 200, regardless of success.
+          content:
+            text/html:
+              examples:
+                success:
+                  description: "Success response, containing a hex-encoded token"
+                  value: "12345678abcde"
+                error:
+                  description: "Error response, containing an empty string"
+                  value: ""
+  # Chat
+  /get_lobby_chatV2.php:
+    post:
+      summary: Fetch in-game lobby chat
+      description: |-
+        Returns the in-game lobby chat which is seen when loading into the game.
+
+        Note that this is not the chat you see while in a match. In a match, chat messages are received using the [RpcSendChatMessage](https://variant9.dev/BulletForceHaxV3/BulletForceInternal/PUN/ListOfRpcCalls.html#RpcSendChatMessage) RPC call.
+      operationId: getLobbyChatV2
+      tags: ["Chat"]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                platform:
+                  type: string
+                  description: The platform the user is using
+                  example: WebGLPlayer
+                username:
+                  $ref: "#/components/schemas/UserName"
+                password:
+                  $ref: "#/components/schemas/UserPassword"
+                server:
+                  type: string
+                  format: uri
+                  description: The lobby server the user is using
+                  example: wss://game-ca-1.blayzegames.com
+      responses:
+        "200":
+          description: |-
+            Contains JSON-encoded messages and some metadata.
+            
+            Note that the content type is `text/html`, but the content is encoded as JSON.
+          content:
+            text/html: # BF does not set correct content type headers
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    maxItems: 50
+                    items:
+                      $ref: "#/components/schemas/ChatMessage"
+                  playersOnline:
+                    type: string
+                    format: number
+                    minimum: 0
+                  playersOnlineInServer:
+                    type: number
+                    minimum: 0
+  /send_lobby_chatV2.php:
+    post:
+      summary: Send a chat message
+      description: |-
+        Used to send a chat message. Returns a list of the new chat messages in response.
+      tags: ["Chat"]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                platform:
+                  type: string
+                  description: The platform the user is using
+                  example: WebGLPlayer
+                username:
+                  $ref: "#/components/schemas/UserName"
+                password:
+                  $ref: "#/components/schemas/UserPassword"
+                chat:
+                  type: string
+                  format: uri
+                  description: The chat message to send
+                  example: "Hello world!"
+                server:
+                  type: string
+                  format: uri
+                  description: The lobby server the user is using
+                  example: wss://game-ca-1.blayzegames.com
+      responses:
+        "200":
+          description: |-
+            Contains JSON-encoded messages, including the newly sent message.
+            
+            Note that the content type is `text/html`, but the content is encoded as JSON.
+          content:
+            text/html: # BF does not set correct content type headers
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    maxItems: 50
+                    items:
+                      $ref: "#/components/schemas/ChatMessage"
+  /get_lobby_chat.php:
+    post:
+      deprecated: true
+      summary: Fetch in-game lobby chat (old API)
+      tags: ["Chat"]
+  # Other
+  /download_scriptableV2.php:
+    post: {}
+  /get_weapon_stats.php:
+    post: {}
+  /get_user_badge.php:
+    post: {}
+  /set_webgl_platform.php:
+    post: {}
+  /checkForSeasonPrize.php:
+    post: {}
+  /get-account-rolesV2.php:
+    post: {}
+  /checkifoverpowered.php:
+    post: {}
+components:
+  schemas:
+    UserName:
+      type: string
+      description: The player's username
+      example: "PC-Username"
+    UserPassword:
+      type: string
+      description: The player's password
+      example: "B109F3BBBC244EB82441917ED06D618B9008DD09B3BEFD1B5E07394C706A8BB980B1D7785E5976EC049B46DF5F1326AF5A2EA6D103FD07C95385FFAB0CACBC86"
+    ChatMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The content of the chat message. This includes the sender's username.
+          example: "PlayerName: <color=silver>Hello world!</color>"
+        time:
+          type: number
+          format: timestamp
+          description: The Unix timestamp when the message was sent, in seconds.
+          example: 1735689600
+        username:
+          type: string
+          description: The username of the person that sent the chat message.
+          example: "PlayerName"
+externalDocs:
+  url: https://variant9.dev/BulletForceHaxV3/
