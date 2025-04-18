@@ -25,13 +25,20 @@ jobs:
       - name: Build Book
         run: |
           cd docs
-          mdbook build
+          mdbook build -d output
+      - name: Fetch Swagger-UI
+        run: |
+          curl -sSL https://github.com/swagger-api/swagger-ui/archive/refs/tags/v5.21.0.zip -o swagger-ui.zip
+          unzip -j swagger-ui.zip "*/dist/*" -d docs/swagger-ui/
+          sed -i 's/https:\/\/petstore.swagger.io\/v2\/swagger.json/..\/openapi.yml/g' docs/swagger-ui/swagger-initializer.js
+          cp -r docs/swagger-ui docs/output/
+          cp docs/openapi.yml docs/output/openapi.yml
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "docs/book"
+          path: "docs/output"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
