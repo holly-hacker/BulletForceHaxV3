@@ -9,7 +9,7 @@ use crate::{
     pun::{LiftingError, ViewId, constants::*},
 };
 
-use super::RoomInfo;
+use super::{ActorInfo, RoomInfo};
 
 pub trait ParseEventExt {
     fn parse(self) -> Result<PunEvent, LiftingError>;
@@ -158,7 +158,7 @@ impl_u8_map_conversion! {
         actor_nr: i32,
 
         [parameter_code::PLAYER_PROPERTIES => PhotonObject::Hashtable]
-        actor_properties: PhotonHashmap, // TODO: to object
+        actor_properties: ActorInfo, // TODO: to object
 
         [parameter_code::ACTOR_LIST => PhotonObject::Array]
         actors_in_room: PhotonArray,
@@ -335,6 +335,7 @@ impl_photon_map_conversion! {
     }
 
     /// Event data from [InstantiationEvent].
+    #[derive(Default)]
     InstantiationEventData {
         @required
         [PhotonObject::Byte(0) => PhotonObject::String]

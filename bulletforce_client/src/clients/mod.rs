@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::time::{Duration, Instant};
 
+use photon_lib::pun::lifting::{PunOperationRequest, RaiseEventParsed};
 use photon_lib::{
     WriteError,
     photon::message::{OperationResponse, PhotonMessage},
@@ -119,6 +120,14 @@ impl<T: ClientImpl> Client<T> {
 
     pub fn get_state(&self) -> &T::State {
         &self.context.state
+    }
+
+    pub fn raise_event(&mut self, event: RaiseEventParsed) -> Result<(), WriteError> {
+        let request = event.into();
+        let pun_op_req: PunOperationRequest = PunOperationRequest::RaiseEvent(Box::new(request));
+        let op_req = pun_op_req.unparse();
+        let message = PhotonMessage::OperationRequest(op_req);
+        self.context.enqueue_sent_message(message)
     }
 
     pub fn queue_ping_if_needed(&mut self) -> Result<(), HandlerError> {

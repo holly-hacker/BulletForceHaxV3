@@ -1,13 +1,16 @@
 use std::collections::HashMap;
 
+use photon_bulletforce::rpc::BfhRpcCall;
 use photon_lib::{
     PhotonHashmap, PhotonObject,
     photon::message::PhotonMessage,
     pun::{
+        ViewId,
         constants::operation_code,
         lifting::{
             ActorInfo, AuthenticateRequest, JoinGameRequest, ParseEventExt as _,
-            ParseOperationResponseExt as _, PunEvent, PunOperationResponse, RoomInfo,
+            ParseOperationResponseExt as _, PunEvent, PunOperationRequest, PunOperationResponse,
+            RaiseEventParsed, RoomInfo, RpcCall, RpcEvent, SetPropertiesRequest,
         },
     },
 };
@@ -15,7 +18,7 @@ use tracing::{debug, warn};
 
 use crate::{errors::HandlerError, utils::to_operation_request};
 
-use super::ClientImpl;
+use super::{Client, ClientImpl};
 
 #[derive(Default)]
 pub struct GameClient;
@@ -243,4 +246,66 @@ pub enum GameState {
 
 pub struct PlayerInfo {
     pub player_properties: ActorInfo,
+}
+
+impl Client<GameClient> {
+    pub fn set_player_properties(
+        &mut self,
+        properties: impl Into<PhotonHashmap>,
+    ) -> Result<(), HandlerError> {
+        let GameState::Ready { actor_nr, .. } = self.get_state() else {
+            return Err(HandlerError::Other(
+                "invalid state, should be Ready. return error here".into(),
+            ));
+        };
+
+        let req = SetPropertiesRequest {
+            properties: properties.into(),
+            actor_nr: Some(*actor_nr),
+            broadcast: Some(true),
+            event_forward: None,
+        };
+        let pun_op_req = PunOperationRequest::SetProperties(Box::new(req));
+        let op_req = pun_op_req.unparse();
+        let message = PhotonMessage::OperationRequest(op_req);
+        self.context.enqueue_sent_message(message)?;
+
+        Ok(())
+    }
+
+    pub fn send_rpc_call(
+        &mut self,
+        call: BfhRpcCall,
+        args: &[PhotonObject],
+    ) -> Result<(), HandlerError> {
+        let GameState::Ready { actor_nr, .. } = self.get_state() else {
+            return Err(HandlerError::Other(
+                "invalid state, should be Ready. return error here".into(),
+            ));
+        };
+
+        let actor_nr = *actor_nr;
+
+        self.raise_event(RaiseEventParsed {
+            cache: Some(4),
+            data: PunEvent::Rpc(Box::new(RpcEvent {
+                sender_actor: Some(actor_nr),
+                data: Some(RpcCall {
+                    rpc_index: Some(call as u8),
+                    net_view_id: ViewId(actor_nr * 1000 + 1),
+                    server_timestamp: None,
+                    in_method_parameters: Some(args.to_vec()),
+                    other_side_prefix: None,
+                    method_name: None,
+                    custom_properties: Default::default(),
+                }),
+            })),
+            actor_list: None,
+            group: None,
+            receiver_group: None,
+            event_forward: None,
+        })?;
+
+        Ok(())
+    }
 }

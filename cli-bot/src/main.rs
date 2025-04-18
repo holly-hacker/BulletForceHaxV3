@@ -5,9 +5,20 @@ mod utils;
 use std::thread;
 
 use bulletforce_client::{
-    game::{GameClient, GameClientSettings, GameState},
+    game::{GameClient, GameClientSettings},
     lobby::{LobbyClientSettings, LobbyState},
-    photon_lib::PhotonObject,
+    photon_bulletforce::rpc::BfhRpcCall,
+    photon_lib::{
+        PhotonHashmap, PhotonObject,
+        indexmap::indexmap,
+        pun::{
+            ViewId,
+            lifting::{
+                ActorInfo, DestroyPlayerEvent, InstantiationEvent, InstantiationEventData,
+                PunEvent, RaiseEventParsed,
+            },
+        },
+    },
 };
 use cli_args::CliArgs;
 use connect_util::drive_client_loop;
@@ -72,7 +83,7 @@ fn run_client(args: CliArgs) {
                     last_game_stats = new_game_stats;
                 }
 
-                // look for target player
+                // look for target lobby
                 let key = games
                     .iter()
                     .find(|(k, v)| {
@@ -152,8 +163,72 @@ fn run_client(args: CliArgs) {
     drive_client_loop::<GameClient, _, _>(game_client_settings, |client| {
         #[allow(clippy::single_match)]
         match client.get_state() {
-            GameState::Ready { .. } => {
-                // TODO
+            bulletforce_client::game::GameState::Ready { actor_nr, .. } => {
+                let actor_nr = *actor_nr;
+                let tag = "bfh";
+                let player_name = &args.player_name;
+                let player_name = format!("[{tag}]{player_name}");
+
+                info!("Initializing player");
+
+                // destroy self, not actually needed
+                client
+                    .raise_event(RaiseEventParsed {
+                        cache: Some(4),
+                        data: PunEvent::DestroyPlayer(Box::new(DestroyPlayerEvent {
+                            custom_data: Some(PhotonHashmap(
+                                indexmap!(0u8.into() => actor_nr.into()),
+                            )),
+                        })),
+                        actor_list: None,
+                        group: None,
+                        receiver_group: None,
+                        event_forward: None,
+                    })
+                    .unwrap();
+
+                // instantiate own player body
+                client
+                    .raise_event(RaiseEventParsed {
+                        cache: Some(4),
+                        data: PunEvent::Instantiation(Box::new(InstantiationEvent {
+                            sender_actor: Some(actor_nr),
+                            data: Some(InstantiationEventData {
+                                prefab_name: "PlayerBody".into(),
+                                server_time: 0,
+                                instantiation_id: ViewId(actor_nr * 1000 + 1),
+                                ..Default::default()
+                            }),
+                        })),
+                        actor_list: None,
+                        group: None,
+                        receiver_group: None,
+                        event_forward: None,
+                    })
+                    .unwrap();
+
+                // set props
+                client
+                    .set_player_properties(ActorInfo {
+                        player_name: player_name.clone(),
+                        custom_properties: indexmap! {
+                            "platform".into() => "WebGLPlayer".to_string().into(),
+                            "rank".into() => 123u8.into(),
+                            "kd".into() => PhotonObject::Float((10.).into()),
+                            "up_to_date_version".into() => "1.104.5_HC".to_string().into(),
+                        },
+                    })
+                    .unwrap();
+
+                // auth, is required to not get kicked from the game
+                if let Some(auth_token) = &args.auth_token {
+                    client
+                        .send_rpc_call(
+                            BfhRpcCall::RpcSendMultiplayerAuthToken,
+                            &[auth_token.to_string().into()],
+                        )
+                        .unwrap();
+                }
             }
             _ => {}
         }

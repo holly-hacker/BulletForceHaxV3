@@ -17,6 +17,14 @@ pub struct CliArgs {
     #[argh(positional)]
     pub lobby_name_segment: String,
 
+    /// the name to use
+    #[argh(positional)]
+    pub player_name: String,
+
+    /// an optional auth token to authenticate the player
+    #[argh(option)]
+    pub auth_token: Option<String>,
+
     /// the amount of threads/clients to start
     #[argh(option, short = 't', default = "1")]
     pub thread_count: usize,

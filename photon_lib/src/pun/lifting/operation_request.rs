@@ -553,3 +553,23 @@ impl TryFrom<RaiseEventRequest> for RaiseEventParsed {
         })
     }
 }
+
+impl From<RaiseEventParsed> for RaiseEventRequest {
+    fn from(source: RaiseEventParsed) -> Self {
+        let mut unparsed_event = source.data.unparse();
+        let data = unparsed_event
+            .parameters
+            .0
+            .swap_remove(&parameter_code::CUSTOM_EVENT_CONTENT);
+
+        Self {
+            code: unparsed_event.code,
+            cache: source.cache,
+            data,
+            actor_list: source.actor_list,
+            group: source.group,
+            receiver_group: source.receiver_group,
+            event_forward: source.event_forward,
+        }
+    }
+}

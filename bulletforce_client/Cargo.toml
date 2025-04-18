@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 photon_lib = { path = "../photon_lib" }
+photon_bulletforce = { path = "../photon_bulletforce" }
 strum = { version = "0.27.1", features = ["derive"] }
 thiserror = "2.0.12"
 tracing = "0.1.41"

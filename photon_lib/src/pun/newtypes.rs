@@ -3,11 +3,12 @@ use serde::{Deserialize, Serialize};
 const PHOTON_NETWORK_MAX_VIEW_IDS: i32 = 1000;
 
 /// Represents a Photon View ID
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ViewId(pub i32);
 
 impl ViewId {
     pub fn get_owner_id(&self) -> i32 {
+        // TODO: return actornr?
         self.0 / PHOTON_NETWORK_MAX_VIEW_IDS
     }
 }
