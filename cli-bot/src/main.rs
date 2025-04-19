@@ -2,8 +2,6 @@ mod cli_args;
 mod connect_util;
 mod utils;
 
-use std::thread;
-
 use bulletforce_client::{
     game::{GameClient, GameClientSettings},
     lobby::{LobbyClientSettings, LobbyState},
@@ -22,29 +20,26 @@ use bulletforce_client::{
 };
 use cli_args::CliArgs;
 use connect_util::drive_client_loop;
+use tokio::task::JoinSet;
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::util::SubscriberInitExt;
 use utils::generate_uuid_v4;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: CliArgs = argh::from_env();
     init_logging();
 
-    let join_handles = (0..args.thread_count)
-        .map(|_| {
-            let args = args.clone();
-            thread::spawn(move || {
-                run_client(args);
-            })
-        })
-        .collect::<Vec<_>>();
+    let mut join_set = JoinSet::new();
+    (0..args.thread_count).for_each(|_| {
+        let args = args.clone();
+        join_set.spawn(run_client(args));
+    });
 
-    for jh in join_handles {
-        jh.join().unwrap();
-    }
+    _ = join_set.join_all();
 }
 
-fn run_client(args: CliArgs) {
+async fn run_client(args: CliArgs) {
     let settings = LobbyClientSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),
@@ -146,7 +141,8 @@ fn run_client(args: CliArgs) {
         }
 
         None
-    });
+    })
+    .await;
 
     let Some(game_client_settings) = game_client_settings else {
         return;
@@ -234,7 +230,8 @@ fn run_client(args: CliArgs) {
         }
 
         None::<()>
-    });
+    })
+    .await;
 }
 
 fn init_logging() {
