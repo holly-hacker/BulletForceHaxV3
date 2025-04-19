@@ -77,21 +77,27 @@ Class: `JumpAndRunMovement`
 
 ### 13: `FlagTakenValueUpdated(?)` {#FlagTakenValueUpdated}
 
-### 14: `Flash(?)` {#Flash}
+### 14: `Flash()` {#Flash}
 
 Class: `OnClickFlashRpc`
 
 
-### 15: `GetBestSpawnPointForPlayer(?)` {#GetBestSpawnPointForPlayer}
+### 15: `GetBestSpawnPointForPlayer(int flagIDToSpawnOn)` {#GetBestSpawnPointForPlayer}
 
-### 16: `GotKillAssist(?)` {#GotKillAssist}
+Class: `PlayerScript`
+
+
+### 16: `GotKillAssist(float amount, int killedID)` {#GotKillAssist}
+
+Class: `PlayerScript`
+
 
 ### 17: `HealthUpdated(float value)` {#HealthUpdated}
 
 Class: `PlayerScript`
 
 
-### 18: `InstantiateRpc(?)` {#InstantiateRpc}
+### 18: `InstantiateRpc(int viewID)` {#InstantiateRpc}
 
 Class: `ManualPhotonViewAllocator`
 
@@ -101,7 +107,10 @@ Class: `ManualPhotonViewAllocator`
 Class: `PlayerScript`
 
 
-### 20: `KickPlayer(?)` {#KickPlayer}
+### 20: `KickPlayer(string playerToKick, string hashedpass)` {#KickPlayer}
+
+Class: `PlayerScript`
+
 
 ### 21: `LatencyReceive(?)` {#LatencyReceive}
 
@@ -113,13 +122,25 @@ Class: `MasterClientFinder`
 Class: `MasterClientFinder`
 
 
-### 23: `localCreateGrenade(?)` {#localCreateGrenade}
+### 23: `localCreateGrenade(Vector3 position, Vector3 velocity, float forcedDelay, byte grenadeWeaponType)` {#localCreateGrenade}
 
-### 24: `localHurt(?)` {#localHurt}
+Class: `PlayerScript`
 
-### 25: `localReload(?)` {#localReload}
 
-### 26: `localSpawnThrowingWeapon(?)` {#localSpawnThrowingWeapon}
+### 24: `localHurt(int damagerID, float damage, Vector3 localPosition, byte damagerWeapon, float newHealth)` {#localHurt}
+
+Class: `PlayerScript`
+
+
+### 25: `localReload()` {#localReload}
+
+Class: `PlayerScript`
+
+
+### 26: `localSpawnThrowingWeapon(Vector3 position, Vector3 velocity, byte weaponType)` {#localSpawnThrowingWeapon}
+
+Class: `PlayerScript`
+
 
 ### 27: `MapVotedFor(?)` {#MapVotedFor}
 
@@ -128,14 +149,20 @@ Class: `MasterClientFinder`
 Not found in source code.
 
 
-### 29: `MatchOverChanged(?)` {#MatchOverChanged}
+### 29: `MatchOverChanged(bool value)` {#MatchOverChanged}
+
+Class: `PlayerScript`
+
 
 ### 30: `mpMeleeAnimation()` {#mpMeleeAnimation}
 
 Class: `PlayerScript`
 
 
-### 31: `mpThrowGrenadeAnimation(?)` {#mpThrowGrenadeAnimation}
+### 31: `mpThrowGrenadeAnimation()` {#mpThrowGrenadeAnimation}
+
+Class: `PlayerScript`
+
 
 ### 32: `MyRPCMethod(?)` {#MyRPCMethod}
 
@@ -221,9 +248,15 @@ If the sender's name is empty, the `: ` section of the chat messages is also rem
 Class: `PlayerScript`
 
 
-### 52: `RpcShowHitmarker(?)` {#RpcShowHitmarker}
+### 52: `RpcShowHitmarker()` {#RpcShowHitmarker}
 
-### 53: `RpcShowPerkMessage(?)` {#RpcShowPerkMessage}
+Class: `PlayerScript`
+
+
+### 53: `RpcShowPerkMessage(string msgUsername, string msg)` {#RpcShowPerkMessage}
+
+Class: `PlayerScript`
+
 
 ### 54: `SetElevatorsClosed(?)` {#SetElevatorsClosed}
 
@@ -238,6 +271,8 @@ Class: `PlayerScript`
 
 ### 58: `SetRank(byte r)` {#SetRank}
 
+Changes the player's rank in the player list.
+
 Class: `PlayerScript`
 
 
@@ -248,10 +283,16 @@ Class: `PlayerScript`
 
 ### 60: `SetTimeScale(float s)` {#SetTimeScale}
 
+Supposedly sets the time scale.
+
+When executed as a fresh joined player, this either crashes the lobby or kicks the player (to be checked).
+
 Class: `PlayerScript`
 
 
 ### 61: `ShowAnnouncement(string text, float time)` {#ShowAnnouncement}
+
+Shows a red piece of text on-screen for all players. You do not need to be authenticated for this RPC call, but you need to have instantiated a `PlayerBody`.
 
 Class: `PlayerScript`
 
@@ -270,15 +311,30 @@ Class: `PlayerScript`
 Class: `PlayerScript`
 
 
-### 66: `UpdateAlivePlayers(?)` {#UpdateAlivePlayers}
+### 66: `UpdateAlivePlayers(int _team0Alive, int _team1Alive)` {#UpdateAlivePlayers}
 
-### 67: `UpdateHMFFARounds(?)` {#UpdateHMFFARounds}
+Class: `MatchManager`
 
-### 68: `UpdateMPDeaths(?)` {#UpdateMPDeaths}
 
-### 69: `UpdateMPKills(?)` {#UpdateMPKills}
+### 67: `UpdateHMFFARounds(int playerID, int roundsWon)` {#UpdateHMFFARounds}
 
-### 70: `UpdateMPRounds(?)` {#UpdateMPRounds}
+Class: `PlayerScript`
+
+
+### 68: `UpdateMPDeaths(int value)` {#UpdateMPDeaths}
+
+Class: `PlayerScript`
+
+
+### 69: `UpdateMPKills(int value)` {#UpdateMPKills}
+
+Class: `PlayerScript`
+
+
+### 70: `UpdateMPRounds(int value)` {#UpdateMPRounds}
+
+Class: `PlayerScript`
+
 
 ### 71: `UpdateTeamNumber(byte value)` {#UpdateTeamNumber}
 
@@ -291,15 +347,42 @@ Class: `ManualPhotonViewAllocator`
 
 ### 74: `UpdateVIPsOnSubordinates(?)` {#UpdateVIPsOnSubordinates}
 
-### 75: `UsernameChanged(?)` {#UsernameChanged}
+### 75: `UsernameChanged(string value)` {#UsernameChanged}
 
-### 76: `WeaponCamoChanged(?)` {#WeaponCamoChanged}
+Class: `PlayerScript`
 
-### 77: `WeaponTypeChanged(?)` {#WeaponTypeChanged}
+
+### 76: `WeaponCamoChanged(int value)` {#WeaponCamoChanged}
+
+Class: `PlayerScript`
+
+
+### 77: `WeaponTypeChanged(byte value)` {#WeaponTypeChanged}
+
+Class: `PlayerScript`
+
 
 ### 78: `RpcACKill(?)` {#RpcACKill}
 
-### 79: `RpcForceKillstreak(?)` {#RpcForceKillstreak}
+### 79: `RpcForceKillstreak(KillstreakManager.Killstreak k, bool isOnTheSameTeam)` {#RpcForceKillstreak}
+
+The first argument is most likely sent as an `int`, as that's the default type for enums in C#.
+
+```cs
+public enum Killstreak
+{
+	None = 0,
+	UAV = 1,
+	SuperSoldier = 2,
+	CounterUAV = 3,
+	AdvancedUAV = 4,
+	Haste = 5,
+	Nuke = 6,
+}
+```
+
+Class: `PlayerScript`
+
 
 ### 80: `RpcDownloadScriptable(?)` {#RpcDownloadScriptable}
 
