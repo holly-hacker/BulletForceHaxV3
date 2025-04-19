@@ -10,8 +10,9 @@
 # Bullet Force internals
 
 - [Tech stack](./BulletForceInternal/TechStack.md)
-- [HTTP API]()
+- [HTTP API](./HttpApi/Index.md)
   - [Account system]()
+  - [OpenAPI definition](./HttpApi/OpenAPI.md)
 - [PUN]()
   - [List of RPC calls](./BulletForceInternal/PUN/ListOfRpcCalls.md)
 - [Reverse Engineering]()
