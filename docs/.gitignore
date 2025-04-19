@@ -1,1 +1,6 @@
+# MdBook output
 book
+
+# Vale styles
+styles/*
+!styles/config

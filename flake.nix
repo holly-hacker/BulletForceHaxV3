@@ -24,7 +24,7 @@
             })
             wasm-pack
             pkg-config openssl
-            mdbook
+            mdbook vale
           ];
           buildInputs = [];
           packages = [];

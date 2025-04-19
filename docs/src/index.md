@@ -1,18 +1,20 @@
 # Introduction
 
-This book holds documentation for [Photon (PUN)][pun], [Bullet Force][bfweb]'s internals and [BulletForceHaxV3][bfhaxv3] (a cheat for Bullet Force).
+This book holds documentation for [Photon/PUN][pun], [Bullet Force][bfweb]'s internals and [BulletForceHaxV3][bfhaxv3], a cheat for Bullet Force.
 
-Bullet Force is a multiplayer first-person shooter game published by [Blayze Games][blayze]. It has been released for [web][bfweb] and mobile (both [Android][bfandroid] and [iOS][bfios]), with a [native PC port][bfsteam] coming to Steam in the near future.
+Bullet Force is a multiplayer first-person shooter game published by [Blayze Games][blayze]. It has released for [web][bfweb], [Android][bfandroid] and [iOS][bfios]), with a [native PC port][bfsteam] coming to Steam in the near future.
 
 ## Why BulletForceHax?
 
-Bullet Force uses [Photon Unity Networking (PUN)][pun] for networking, meaning that most of the networking logic is not implemented by the Bullet Force developers but part of a pre-made package. PUN is also client-authoritive in many aspects, requiring specific hooks/plugins by the game developer to add additional security measures instead of being secure by default.
+Bullet Force uses [Photon Unity Networking, or PUN][pun], for networking, meaning that most of the networking logic isn't implemented by the Bullet Force developers but part of a pre-made package. PUN is also client-authoritive in many aspects, requiring specific hooks/plugins by the game developer to add additional security measures instead of being secure by default.
 
-Additionally, Bullet Force targets Unity's WebGL platform which means tradtional hacking techniques (such as code injection and memory manipulation) are less trivial. It allows for experimenting with different approaches as there is no single way that is clearly better than the rest.
+The game's name is BulletForce.
 
-These factors mean that Bullet Force is a fun target to reverse engineer and write tooling for. It is unlike games that cheats are traditionally written for (like Assault Cube or Counter-Strike 2) where the same techniques carry over between games, and to my knowledge had not seen any open source cheats until the original release of [BulletForceHax][bfhaxv1].
+Additionally, Bullet Force targets Unity's WebGL platform which means traditional hacking techniques such as code injection and memory manipulation are less trivial. It allows for experimenting with different approaches as there is no single way that's clearly better than the rest.
 
-[BulletForceHax][bfhaxv1] has since been succeeded by [BulletForceHaxV2][bfhaxv2] and then later by [BulletForceHaxV3][bfhaxv3], which is where my current focus lies. This book will not cover old iterations of BulletForceHax and you should not expect any further development or support for them.
+These factors make Bullet Force a fun target to reverse engineer and write tooling for. It's unlike games that cheats are traditionally written for like Assault Cube or Counter-Strike 2 where the same techniques carry over between games, and to the author's knowledge had not seen any open source cheats until the original release of [BulletForceHax][bfhaxv1].
+
+[BulletForceHaxV2][bfhaxv2] as since succeeded [BulletForceHax][bfhaxv1], and later [BulletForceHaxV3][bfhaxv3] as succeeded it, which is where current focus lies. This book won't cover old iterations of BulletForceHax and you shouldn't expect any further development or support for them.
 
 [pun]: https://www.photonengine.com/pun
 [blayze]: https://blayzegames.com/

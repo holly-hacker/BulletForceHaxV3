@@ -1,6 +1,6 @@
 # List of RPC calls
 
-The RPC indices can be found through [UABEA](https://github.com/nesrak1/UABEA) (or perhaps [UABEANext](https://github.com/nesrak1/UABEANext)?) and checking the `PhotonServerSettings` MonoBehavior resource.
+The RPC indices can be found through [UABEA](https://github.com/nesrak1/UABEA) and checking the `PhotonServerSettings` MonoBehavior resource.
 
 Signatures for [RPC calls](https://doc.photonengine.com/pun/current/gameplay/rpcsandraiseevent) can be found in a generated DummyDLL by looking for methods with the `PunRPC` attribute applied. For example:
 ```cs
@@ -14,7 +14,7 @@ public void AcknowledgeDamageDoneRPC(string status, float damage, int victimID)
 
 The parameters to this function are the parameters sent in the RPC event.
 
-In some cases, these methods may take an additional parameter `PhotonMessageInfo` parameter. This parameter is not sent as part of the RPC event:
+In some cases, these methods may take an additional parameter `PhotonMessageInfo` parameter. This parameter isn't sent as part of the RPC event:
 ```cs
 // PlayerScript
 [PunRPC]
@@ -25,6 +25,8 @@ private void HealthUpdated(float value, PhotonMessageInfo info)
 ```
 
 ## Full list
+
+<!-- vale off -->
 
 ### 0: `AcknowledgeDamageDoneRPC(string status, float damage, int victimID)` {#AcknowledgeDamageDoneRPC}
 
@@ -427,7 +429,7 @@ This RPC method has to be called using the response string from API endpoint `ht
 
 <!-- TODO: link to API documentation page -->
 
-If it is not called, the player gets kicked from the game. If this gets called with an invalid auth token (eg. non-existent, from another player or a newer token has already been generated), then the player also gets kicked from the game.
+If this method isn't called, the player gets kicked from the game. If this gets called with an invalid auth token such as for example an unknown token, a token from another player or when a newer token has generated, then the player also gets kicked from the game.
 
 
 ### 89: `RpcRequestEnterVehicle(?)` {#RpcRequestEnterVehicle}
@@ -497,3 +499,5 @@ Class: `BFVehicle`
 ### 106: `RpcSendReceiveCustomMapToServer(?)` {#RpcSendReceiveCustomMapToServer}
 
 ### 107: `RpcCustomMapLikeDislike(?)` {#RpcCustomMapLikeDislike}
+
+<!-- vale on -->
