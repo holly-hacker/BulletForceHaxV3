@@ -2,7 +2,7 @@
 
 import { isAnyRequest } from "./communication";
 import { GET_PATCHED_FILE, GetPatchedFileRequest, GetPatchedFileResponse } from "./communication/to_background";
-import { log, logError } from "./util";
+import { isGameHostUrl, log, logError } from "./util";
 import { fetchOrGetCached } from "./util/fileCache";
 
 log('background service started');
@@ -14,11 +14,7 @@ async function onTabUpdated(tabId: number, _info: chrome.tabs.TabChangeInfo, tab
 	if (!tab.url) return;
 	const url = new URL(tab.url);
 
-	const isCrazyGames = url.hostname === 'crazygames.com' && url.pathname === '/game/bullet-force';
-	const isCrazyGamesWww = url.hostname === 'www.crazygames.com' && url.pathname === '/game/bullet-force';
-	const isCgTopFrame = url.hostname === 'games.crazygames.com' && url.pathname.indexOf('bullet-force') !== -1;
-
-	if (isCrazyGames || isCrazyGamesWww || isCgTopFrame) {
+	if (isGameHostUrl(url)) {
 		log('Enabling side panel for', tab.url);
 		await chrome.action.enable(tabId);
 		await chrome.action.setBadgeText({ text: "✔️", tabId });
@@ -109,4 +105,3 @@ async function handleGetPatchedFile(request: GetPatchedFileRequest): Promise<Get
 
 	return { js };
 }
-

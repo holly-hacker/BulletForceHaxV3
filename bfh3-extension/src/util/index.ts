@@ -54,3 +54,11 @@ export function messageTypeNumToString(num: number): MessageTypeString | null {
 		default: return null;
 	}
 }
+
+export function isGameHostUrl(url: URL): boolean {
+	const isCrazyGames = url.hostname === 'crazygames.com' && url.pathname === '/game/bullet-force-multiplayer';
+	const isCrazyGamesWww = url.hostname === 'www.crazygames.com' && url.pathname === '/game/bullet-force-multiplayer';
+	const isCgTopFrame = url.hostname === 'games.crazygames.com' && url.pathname.indexOf('bullet-force') !== -1;
+
+	return isCrazyGames || isCrazyGamesWww || isCgTopFrame;
+}

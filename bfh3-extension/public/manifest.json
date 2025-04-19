@@ -19,17 +19,11 @@
         "default_title": "Open BulletForceHaxV3 panel",
         "default_state": "disabled"
     },
-    "permissions": [
-        "storage",
-        "unlimitedStorage",
-        "tabs",
-        "sidePanel"
-    ],
-    "host_permissions": [
-        "*://*.crazygames.com/*"
-    ],
+    "permissions": ["storage", "unlimitedStorage", "tabs", "sidePanel"],
+    "host_permissions": ["*://*.crazygames.com/*"],
     "externally_connectable": {
         "matches": [
+            "*://www.crazygames.com/game/bullet-force-multiplayer*",
             "*://games.crazygames.com/en_US/bullet-force-multiplayer/index.html*",
             "*://bullet-force-multiplayer.game-files.crazygames.com/unity/unity2020/bullet-force-multiplayer.html*"
         ]
@@ -41,9 +35,7 @@
             ],
             "all_frames": true,
             "run_at": "document_start",
-            "js": [
-                "contentScripts_gameFrame_documentStart.js"
-            ]
+            "js": ["contentScripts_gameFrame_documentStart.js"]
         }
     ],
     "web_accessible_resources": [
