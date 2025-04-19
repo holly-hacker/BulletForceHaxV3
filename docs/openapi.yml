@@ -1,7 +1,6 @@
-openapi: 3.1.1
+openapi: 3.0.3 # latest version supported by progenitor
 info:
   title: Bullet Force
-  summary: "Bullet Force internal API"
   description: |-
     This OpenAPI definition describes the internal Bullet Force API.
 

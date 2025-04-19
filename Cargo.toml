@@ -7,4 +7,5 @@ members = [
     "photon_bulletforce",
     "bulletforce_client",
     "cli-bot",
+    "bulletforce_api",
 ]

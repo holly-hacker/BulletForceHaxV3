@@ -2,6 +2,7 @@ mod cli_args;
 mod connect_util;
 mod utils;
 
+use bulletforce_api::utils::response_to_string;
 use bulletforce_client::{
     game::{GameClient, GameClientSettings},
     lobby::{LobbyClientSettings, LobbyState},
@@ -20,6 +21,7 @@ use bulletforce_client::{
 };
 use cli_args::CliArgs;
 use connect_util::drive_client_loop;
+use sha2::{Digest as _, Sha512};
 use tokio::task::JoinSet;
 use tracing::{debug, error, info, trace};
 use tracing_subscriber::util::SubscriberInitExt;
@@ -36,7 +38,9 @@ async fn main() {
         join_set.spawn(run_client(args));
     });
 
-    _ = join_set.join_all();
+    _ = join_set.join_all().await;
+
+    info!("All tasks are done");
 }
 
 async fn run_client(args: CliArgs) {
@@ -156,6 +160,37 @@ async fn run_client(args: CliArgs) {
         game_client_settings.token,
     );
 
+    // get auth token
+    let auth_token = if let Some(auth_token) = &args.auth_token {
+        Some(auth_token.clone())
+    } else {
+        let password_hash = args.password_hash.or_else(|| {
+            args.password
+                .map(|p| Sha512::digest(p.as_bytes()))
+                .map(|a| data_encoding::BASE64.encode(&a))
+        });
+
+        match password_hash {
+            Some(hash) => {
+                let client = bulletforce_api::Client::default();
+                let response = client
+                    .get_multiplayer_auth_code(
+                        &bulletforce_api::types::GetMultiplayerAuthCodeBody {
+                            password: Some(bulletforce_api::types::UserPassword(hash)),
+                            username: Some(bulletforce_api::types::UserName(
+                                args.player_name.clone(),
+                            )),
+                        },
+                    )
+                    .await
+                    .unwrap();
+
+                Some(response_to_string(response).await.unwrap())
+            }
+            None => None,
+        }
+    };
+
     drive_client_loop::<GameClient, _, _>(game_client_settings, |client| {
         #[allow(clippy::single_match)]
         match client.get_state() {
@@ -217,7 +252,7 @@ async fn run_client(args: CliArgs) {
                     .unwrap();
 
                 // auth, is required to not get kicked from the game
-                if let Some(auth_token) = &args.auth_token {
+                if let Some(auth_token) = &auth_token {
                     client
                         .send_rpc_call(
                             BfhRpcCall::RpcSendMultiplayerAuthToken,

@@ -21,6 +21,14 @@ pub struct CliArgs {
     #[argh(positional)]
     pub player_name: String,
 
+    /// an optional password to authenticate the player
+    #[argh(option)]
+    pub password: Option<String>,
+
+    /// an optional password hash to authenticate the player
+    #[argh(option)]
+    pub password_hash: Option<String>,
+
     /// an optional auth token to authenticate the player
     #[argh(option)]
     pub auth_token: Option<String>,

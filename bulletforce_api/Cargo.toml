@@ -1,0 +1,16 @@
+[package]
+name = "bulletforce_api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures-util = "0.3.31"
+progenitor-client = "0.9.1"
+reqwest = { version = "0.12.15", default-features = false, features = ["http2", "native-tls", "charset"] }
+serde = "1.0.219"
+
+[build-dependencies]
+prettyplease = "0.2.32"
+progenitor = "0.9.1"
+serde_yaml = "0.9.34"
+syn = "2.0.100"
