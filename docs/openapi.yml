@@ -63,7 +63,7 @@ paths:
                   acnumber:
                     type: string
                     format: number
-                    exmple: "123456789"
+                    example: "123456789"
                   isTutorial:
                     type: number
                     format: boolean
