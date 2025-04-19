@@ -244,6 +244,8 @@ The `msgUsername` parameter seems to be completely ignored. Instead, the game us
 
 If the sender's name is empty, the `: ` section of the chat messages is also removed which allows the sender to place any message in any color in the chat. However, the sender's name can only be empty before the auth token is sent, which means the sender only has a brief window to do this before they are kicked.
 
+The game will occasionally send out an ad through this RPC call: `RpcSendChatMessage("[Bullet Force]", "Consider supporting the game by buying something in the shop!", 255i16, 255i16, 0i16)`. This message is sent by a player, likely the game's host.
+
 
 ### 51: `RpcShoot(int actorID, float damage, Vector3 position, Vector3 direction, byte numberOfBullets, byte spread, double timeShot, int weaponType)` {#RpcShoot}
 
@@ -256,6 +258,8 @@ Class: `PlayerScript`
 
 
 ### 53: `RpcShowPerkMessage(string msgUsername, string msg)` {#RpcShowPerkMessage}
+
+Example: `RpcShowPerkMessage("PlayerName", " used Counter UAV")`
 
 Class: `PlayerScript`
 
@@ -497,6 +501,9 @@ Class: `BFVehicle`
 ### 105: `BFS_DamagePlayer(?)` {#BFS_DamagePlayer}
 
 ### 106: `RpcSendReceiveCustomMapToServer(?)` {#RpcSendReceiveCustomMapToServer}
+
+Example: `RpcSendReceiveCustomMapToServer("53779")`
+
 
 ### 107: `RpcCustomMapLikeDislike(?)` {#RpcCustomMapLikeDislike}
 
