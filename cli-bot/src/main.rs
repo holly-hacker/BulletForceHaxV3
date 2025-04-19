@@ -4,7 +4,7 @@ mod utils;
 
 use bulletforce_api::utils::response_to_string;
 use bulletforce_client::{
-    game::{GameClient, GameClientSettings},
+    game::{GameClient, GameClientSettings, GameState},
     lobby::{LobbyClientSettings, LobbyState},
     photon_bulletforce::rpc::BfhRpcCall,
     photon_lib::{
@@ -191,10 +191,12 @@ async fn run_client(args: CliArgs) {
         }
     };
 
+    let mut has_spawned = false;
     drive_client_loop::<GameClient, _, _>(game_client_settings, |client| {
         #[allow(clippy::single_match)]
         match client.get_state() {
-            bulletforce_client::game::GameState::Ready { actor_nr, .. } => {
+            GameState::Ready { actor_nr, .. } if !has_spawned => {
+                has_spawned = true;
                 let actor_nr = *actor_nr;
                 let tag = "bfh";
                 let player_name = &args.player_name;
@@ -241,7 +243,7 @@ async fn run_client(args: CliArgs) {
                 // set props
                 client
                     .set_player_properties(ActorInfo {
-                        player_name: player_name.clone(),
+                        player_name: Some(player_name.clone()),
                         custom_properties: indexmap! {
                             "platform".into() => "WebGLPlayer".to_string().into(),
                             "rank".into() => 123u8.into(),

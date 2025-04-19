@@ -70,7 +70,6 @@ impl_photon_map_conversion! {
 
     /// Describes an actor
     ActorInfo {
-        @required
         [PhotonObject::Byte(actor_properties::PLAYER_NAME) => PhotonObject::String]
         player_name: String,
 
