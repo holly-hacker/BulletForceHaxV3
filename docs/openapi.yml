@@ -19,6 +19,65 @@ tags:
   - name: Chat
     description: API calls related to lobby chat
 paths:
+  # Login
+  /login.php:
+    post:
+      summary: Checks if a login is valid
+      description: |-
+        Checks whether a login is valid and returns some info about the account.
+      operationId: login
+      tags: ["Account"]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  $ref: "#/components/schemas/UserName"
+                password:
+                  $ref: "#/components/schemas/UserPassword"
+                store:
+                  type: string
+                  description: Which game client is used to execute this request
+                  example: "BALYZE_WEB" # typo is expected
+                useJSON:
+                  type: boolean
+                  description: Determines the response type
+                  example: true
+                locale:
+                  type: string
+                  description: The user's language
+                  example: "english"
+                tutorialr:
+                  type: number
+                  example: 1
+      responses:
+        "200":
+          description: Success and error responses?
+          content:
+            text/html:
+              schema:
+                type: object
+                properties:
+                  acnumber:
+                    type: string
+                    format: number
+                    exmple: "123456789"
+                  isTutorial:
+                    type: number
+                    format: boolean
+                    example: 0
+                  locale:
+                    type: string
+                    example: "english"
+                  popup:
+                    type: boolean
+                    example: false
+                  status:
+                    type: number
+                    example: 1
   /get_multiplayer_auth_code.php:
     post:
       summary: Get a code to authenticate a user in a match
@@ -37,13 +96,17 @@ paths:
               properties:
                 username:
                   $ref: "#/components/schemas/UserName"
+                  required: true
                 password:
                   $ref: "#/components/schemas/UserPassword"
+                  required: true
       responses:
         "200":
           description: This request always returns 200, regardless of success.
           content:
             text/html:
+              schema:
+                type: string
               examples:
                 success:
                   description: "Success response, containing a hex-encoded token"
@@ -74,6 +137,7 @@ paths:
                   example: WebGLPlayer
                 username:
                   $ref: "#/components/schemas/UserName"
+                  required: true # works without this but prints error
                 password:
                   $ref: "#/components/schemas/UserPassword"
                 server:
