@@ -448,6 +448,8 @@ Class: `BFVehicle`
 
 ### 91: `RpcGetKicked(string reason)` {#RpcGetKicked}
 
+Tells a player they've been kicked. The client does not validate the sender of this packet.
+
 Class: `PlayerScript`
 
 
