@@ -1,9 +1,26 @@
+use std::path::PathBuf;
+
 use argh::FromArgs;
 use bulletforce_client::Region;
 
-#[derive(FromArgs, Debug, Clone)]
+#[derive(FromArgs)]
 /// BulletForceHax v3 bot CLI
-pub struct CliArgs {
+pub struct RootArgs {
+    #[argh(subcommand)]
+    pub sub_command: RootSubCommand,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand)]
+pub enum RootSubCommand {
+    Bot(BotArgs),
+    CheckAccounts(CheckAccountsArgs),
+}
+
+#[derive(FromArgs, Clone)]
+#[argh(subcommand, name = "bot")]
+/// Run a bot program
+pub struct BotArgs {
     /// the lobby region
     #[argh(
         option,
@@ -36,6 +53,19 @@ pub struct CliArgs {
     /// the amount of threads/clients to start
     #[argh(option, short = 't', default = "1")]
     pub thread_count: usize,
+}
+
+#[derive(FromArgs)]
+#[argh(subcommand, name = "check-accounts")]
+/// Get information about a list of accounts
+pub struct CheckAccountsArgs {
+    /// path to a text file with accounts stored in `username:password` format
+    #[argh(positional)]
+    pub account_file: PathBuf,
+
+    /// whether passwords are stored as SHA512 hashes
+    #[argh(switch, long = "hashed")]
+    pub passwords_are_hashed: bool,
 }
 
 fn parse_region(value: &str) -> Result<Region, String> {

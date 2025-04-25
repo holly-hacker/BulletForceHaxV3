@@ -3,3 +3,7 @@
 
 # Rust
 /target
+
+# BulletForceHax related files
+accounts.txt
+accounts.*.txt

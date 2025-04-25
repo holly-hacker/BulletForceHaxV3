@@ -1,5 +1,6 @@
 mod cli_args;
 mod connect_util;
+mod tools;
 mod utils;
 
 use bulletforce_api::utils::response_to_string;
@@ -19,31 +20,38 @@ use bulletforce_client::{
         },
     },
 };
-use cli_args::CliArgs;
+use cli_args::{BotArgs, RootArgs};
 use connect_util::drive_client_loop;
 use sha2::{Digest as _, Sha512};
 use tokio::task::JoinSet;
 use tracing::{debug, error, info, trace};
-use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::util::SubscriberInitExt as _;
 use utils::generate_uuid_v4;
 
 #[tokio::main]
 async fn main() {
-    let args: CliArgs = argh::from_env();
+    let args: RootArgs = argh::from_env();
     init_logging();
 
-    let mut join_set = JoinSet::new();
-    (0..args.thread_count).for_each(|_| {
-        let args = args.clone();
-        join_set.spawn(run_client(args));
-    });
+    match args.sub_command {
+        cli_args::RootSubCommand::Bot(bot_args) => {
+            let mut join_set = JoinSet::new();
+            (0..bot_args.thread_count).for_each(|_| {
+                let args = bot_args.clone();
+                join_set.spawn(run_bot(args));
+            });
 
-    _ = join_set.join_all().await;
+            _ = join_set.join_all().await;
 
-    info!("All tasks are done");
+            info!("All tasks are done");
+        }
+        cli_args::RootSubCommand::CheckAccounts(acc_args) => {
+            crate::tools::check_accounts::check_accounts(acc_args).await
+        }
+    }
 }
 
-async fn run_client(args: CliArgs) {
+async fn run_bot(args: BotArgs) {
     let settings = LobbyClientSettings {
         app_version: "1.104.5_HC_1.105".into(),
         user_id: generate_uuid_v4(),

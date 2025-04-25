@@ -52,6 +52,9 @@ paths:
                 tutorialr:
                   type: number
                   example: 1
+                crazyGamesToken:
+                  type: string
+                  description: Key is present but has no value
       responses:
         "200":
           description: Success and error responses?

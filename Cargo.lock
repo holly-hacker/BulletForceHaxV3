@@ -216,6 +216,7 @@ dependencies = [
  "data-encoding",
  "fastrand",
  "futures-util",
+ "serde",
  "sha2",
  "tokio",
  "tokio-tungstenite",
