@@ -96,6 +96,40 @@ impl<T: ClientImpl> Client<T> {
         let packet = PhotonMessage::from_websocket_bytes(&mut data)?;
         trace!("Received message: {packet:?}");
 
+        // log incoming errors
+        if let PhotonMessage::OperationResponse(OperationResponse {
+            operation_code,
+            return_code,
+            debug_message,
+            ..
+        }) = &packet
+        {
+            if *return_code != 0 {
+                tracing::error!(
+                    operation_code,
+                    return_code,
+                    debug_message,
+                    "Incoming OperationResponse returned error"
+                )
+            }
+        }
+        if let PhotonMessage::InternalOperationResponse(OperationResponse {
+            operation_code,
+            return_code,
+            debug_message,
+            ..
+        }) = &packet
+        {
+            if *return_code != 0 {
+                tracing::error!(
+                    operation_code,
+                    return_code,
+                    debug_message,
+                    "Incoming InternalOperationResponse returned error"
+                )
+            }
+        }
+
         // early exit for pongs
         if let PhotonMessage::InternalOperationResponse(OperationResponse {
             operation_code: internal_operation_code::PING,
