@@ -167,7 +167,7 @@ async fn run_client(args: CliArgs) {
         let password_hash = args.password_hash.or_else(|| {
             args.password
                 .map(|p| Sha512::digest(p.as_bytes()))
-                .map(|a| data_encoding::BASE64.encode(&a))
+                .map(|a| data_encoding::HEXUPPER.encode(&a))
         });
 
         match password_hash {
