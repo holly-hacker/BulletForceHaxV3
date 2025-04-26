@@ -38,8 +38,6 @@ function downloadMessages(messages: UnpackedDevtoolsMessage[]) {
 }
 
 export default function DevtoolsTab() {
-	const topTabHeight = 48;
-
 	const [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
 
 	useEffect(() => {
@@ -78,11 +76,11 @@ export default function DevtoolsTab() {
 	}, []);
 
 	return (
-		<div style={{ height: '100vh' }}>
-			<div style={{ height: `${topTabHeight}px`, padding: '4px' }}>
+		<div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<div>
 				<TopPanel onClear={() => setMessages([])} onDownload={() => downloadMessages(messages)} />
 			</div>
-			<div style={{ height: `calc(100% - ${topTabHeight}px)`, overflow: 'auto', }}>
+			<div style={{ flexGrow: 1, overflowY: 'hidden' }}>
 				<MessageListWithSidePanel messages={messages} />
 			</div>
 		</div>
