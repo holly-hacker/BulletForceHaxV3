@@ -23,6 +23,19 @@ function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void 
 	return () => chrome.runtime.onMessage.removeListener(onMessage);
 }
 
+function downloadMessages(messages: UnpackedDevtoolsMessage[]) {
+	const string = JSON.stringify(messages);
+	const blob = new Blob([string], { type: "application/json" });
+	const blobUrl = URL.createObjectURL(blob);
+
+	const anchor = document.createElement("a");
+	anchor.download = "messages.json";
+	anchor.href = blobUrl;
+
+	document.body.appendChild(anchor);
+	anchor.click();
+	document.body.removeChild(anchor);
+}
 
 export default function DevtoolsTab() {
 	const topTabHeight = 48;
@@ -58,7 +71,7 @@ export default function DevtoolsTab() {
 				liftedMessage,
 				interpretedMessage,
 				detail,
-				hasError: hasError,
+				hasError,
 			};
 			setMessages(prevMessages => [...prevMessages, unpackedMessage]);
 		});
@@ -67,7 +80,7 @@ export default function DevtoolsTab() {
 	return (
 		<div style={{ height: '100vh' }}>
 			<div style={{ height: `${topTabHeight}px`, padding: '4px' }}>
-				<TopPanel onClear={() => setMessages([])} />
+				<TopPanel onClear={() => setMessages([])} onDownload={() => downloadMessages(messages)} />
 			</div>
 			<div style={{ height: `calc(100% - ${topTabHeight}px)`, overflow: 'auto', }}>
 				<MessageListWithSidePanel messages={messages} />
