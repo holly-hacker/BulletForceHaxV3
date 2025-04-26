@@ -49,7 +49,7 @@ const columns = [
 	}),
 ];
 
-function getParameterTypeName(message: UnpackedDevtoolsMessage): string | null {
+export function getParameterTypeName(message: UnpackedDevtoolsMessage): string | null {
 	// don't do anything for init and initresponse
 	if (!message.messageType) return '';
 	if (['Init', 'InitResponse'].includes(message.messageType)) return '';

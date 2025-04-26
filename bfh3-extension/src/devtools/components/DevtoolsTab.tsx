@@ -2,14 +2,26 @@ import * as React from "react";
 import TopPanel from "./TopPanel";
 import MessageListWithSidePanel from "./MessageListWithSidePanel";
 import { UnpackedDevtoolsMessage } from "./MessageList";
-import { DevtoolsMessage, SEND_DEVTOOLS_MESSAGE } from "../../communication/to_devtools";
+import {
+	DevtoolsMessage,
+	SEND_DEVTOOLS_MESSAGE,
+} from "../../communication/to_devtools";
 import { isAnyRequest } from "../../communication";
 import { useEffect, useState } from "react";
 
-function registerMessageHandler(cb: (msg: DevtoolsMessage) => void): () => void {
+export type MessageFilter = (msg: UnpackedDevtoolsMessage) => boolean;
+const defaultFilter: MessageFilter = (_msg: UnpackedDevtoolsMessage) => true;
+
+function registerMessageHandler(
+	cb: (msg: DevtoolsMessage) => void,
+): () => void {
 	chrome.runtime.onMessage.addListener(onMessage);
 
-	function onMessage(request: unknown, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
+	function onMessage(
+		request: unknown,
+		_sender: chrome.runtime.MessageSender,
+		sendResponse: (response?: unknown) => void,
+	) {
 		if (!isAnyRequest(request)) return;
 		// log(`incoming request from ${sender.url}`, request);
 
@@ -39,27 +51,32 @@ function downloadMessages(messages: UnpackedDevtoolsMessage[]) {
 
 export default function DevtoolsTab() {
 	const [messages, setMessages] = useState<UnpackedDevtoolsMessage[]>([]);
+	const [messageFilter, setMessageFilter] = useState<MessageFilter>(() => defaultFilter);
 
 	useEffect(() => {
 		return registerMessageHandler((msg) => {
-			let rawMessage, liftedMessage, interpretedMessage, detail, hasError = false;
+			let rawMessage,
+				liftedMessage,
+				interpretedMessage,
+				detail,
+				hasError = false;
 			try {
 				detail = msg.detail;
 				hasError = msg.hasError;
 
 				// ops that can error, in order of dependency
 				rawMessage = JSON.parse(msg.rawMessage) as object;
-				liftedMessage = msg.liftedMessage ? JSON.parse(msg.liftedMessage) as object : undefined;
-				interpretedMessage = msg.interpretedMessage ? JSON.parse(msg.interpretedMessage) as object : undefined;
+				liftedMessage = msg.liftedMessage
+					? (JSON.parse(msg.liftedMessage) as object)
+					: undefined;
+				interpretedMessage = msg.interpretedMessage
+					? (JSON.parse(msg.interpretedMessage) as object)
+					: undefined;
 			} catch (e) {
-				if (!e)
-					detail = undefined;
-				else if (e instanceof Error)
-					detail = e.name;
-				else if (typeof e === 'string')
-					detail = e;
-				else
-					detail = JSON.stringify(e);
+				if (!e) detail = undefined;
+				else if (e instanceof Error) detail = e.name;
+				else if (typeof e === "string") detail = e;
+				else detail = JSON.stringify(e);
 			}
 			const unpackedMessage: UnpackedDevtoolsMessage = {
 				direction: msg.direction,
@@ -71,17 +88,27 @@ export default function DevtoolsTab() {
 				detail,
 				hasError,
 			};
-			setMessages(prevMessages => [...prevMessages, unpackedMessage]);
+			setMessages((prevMessages) => [...prevMessages, unpackedMessage]);
 		});
 	}, []);
 
 	return (
-		<div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+		<div
+			style={{
+				height: "100vh",
+				display: "flex",
+				flexDirection: "column",
+			}}
+		>
 			<div>
-				<TopPanel onClear={() => setMessages([])} onDownload={() => downloadMessages(messages)} />
+				<TopPanel
+					onClear={() => setMessages([])}
+					onDownload={() => downloadMessages(messages)}
+					setFilter={(msg) => setMessageFilter(() => msg)}
+				/>
 			</div>
-			<div style={{ flexGrow: 1, overflowY: 'hidden' }}>
-				<MessageListWithSidePanel messages={messages} />
+			<div style={{ flexGrow: 1, overflowY: "hidden" }}>
+				<MessageListWithSidePanel messages={messages.filter(messageFilter)} />
 			</div>
 		</div>
 	);
