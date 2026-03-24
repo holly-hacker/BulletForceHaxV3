@@ -179,7 +179,7 @@ impl ClientImpl for GameClient {
                                 existing_hashmap.0.insert(k, v);
                             });
                             let new_room_info: RoomInfo = existing_hashmap.try_into()?;
-                            *room_info = Box::new(new_room_info);
+                            **room_info = new_room_info;
                         } else {
                             debug!(
                                 actor_id = props_changed.target_actor_number,

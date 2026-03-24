@@ -96,30 +96,27 @@ async fn run_bot(args: BotArgs) {
                     .find(|(k, v)| {
                         // bullet force
                         if let Some(PhotonObject::String(str)) = v.custom_properties.get("roomName")
+                            && str.contains(&args.lobby_name_segment)
                         {
-                            if str.contains(&args.lobby_name_segment) {
-                                debug!(matched = str, "Matched bf name");
-                                return true;
-                            }
+                            debug!(matched = str, "Matched bf name");
+                            return true;
                         }
 
                         // some other game, version is 1.0.x
                         if let Some(PhotonObject::String(str)) = v.custom_properties.get("RoomName")
+                            && str.contains(&args.lobby_name_segment)
                         {
-                            if str.contains(&args.lobby_name_segment) {
-                                debug!(matched = str, "Matched other game 1");
-                                return true;
-                            }
+                            debug!(matched = str, "Matched other game 1");
+                            return true;
                         }
 
                         // platform=mobile, version=newfps-333
                         if let Some(PhotonObject::String(str)) =
                             v.custom_properties.get("matchname")
+                            && str.contains(&args.lobby_name_segment)
                         {
-                            if str.contains(&args.lobby_name_segment) {
-                                debug!(matched = str, "Matched other game 2");
-                                return true;
-                            }
+                            debug!(matched = str, "Matched other game 2");
+                            return true;
                         }
 
                         if k.contains(&args.lobby_name_segment) {

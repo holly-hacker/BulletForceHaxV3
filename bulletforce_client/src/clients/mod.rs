@@ -103,15 +103,14 @@ impl<T: ClientImpl> Client<T> {
             debug_message,
             ..
         }) = &packet
+            && *return_code != 0
         {
-            if *return_code != 0 {
-                tracing::error!(
-                    operation_code,
-                    return_code,
-                    debug_message,
-                    "Incoming OperationResponse returned error"
-                )
-            }
+            tracing::error!(
+                operation_code,
+                return_code,
+                debug_message,
+                "Incoming OperationResponse returned error"
+            )
         }
         if let PhotonMessage::InternalOperationResponse(OperationResponse {
             operation_code,
@@ -119,15 +118,14 @@ impl<T: ClientImpl> Client<T> {
             debug_message,
             ..
         }) = &packet
+            && *return_code != 0
         {
-            if *return_code != 0 {
-                tracing::error!(
-                    operation_code,
-                    return_code,
-                    debug_message,
-                    "Incoming InternalOperationResponse returned error"
-                )
-            }
+            tracing::error!(
+                operation_code,
+                return_code,
+                debug_message,
+                "Incoming InternalOperationResponse returned error"
+            )
         }
 
         // early exit for pongs

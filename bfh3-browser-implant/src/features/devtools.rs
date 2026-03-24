@@ -76,10 +76,10 @@ impl super::Feature for DevtoolsFeature {
                             let name: &'static str = (&parsed.data).into();
                             detail = Some(format!("Event: {name}"));
 
-                            if let PunEvent::Rpc(rpc) = &parsed.data {
-                                if let Some(call) = &rpc.data {
-                                    detail = Some(get_rpc_function_call_string(call));
-                                }
+                            if let PunEvent::Rpc(rpc) = &parsed.data
+                                && let Some(call) = &rpc.data
+                            {
+                                detail = Some(get_rpc_function_call_string(call));
                             }
                         }
                         Some(parsed_res)
@@ -112,10 +112,10 @@ impl super::Feature for DevtoolsFeature {
 
                 let mut detail = None;
 
-                if let Ok(PunEvent::Rpc(rpc)) = parsed.as_ref() {
-                    if let Some(call) = &rpc.data {
-                        detail = Some(get_rpc_function_call_string(call));
-                    }
+                if let Ok(PunEvent::Rpc(rpc)) = parsed.as_ref()
+                    && let Some(call) = &rpc.data
+                {
+                    detail = Some(get_rpc_function_call_string(call));
                 }
 
                 (
